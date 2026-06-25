@@ -7,45 +7,39 @@ interface CountdownTimerProps {
 }
 
 export function CountdownTimer({ targetDate }: CountdownTimerProps) {
-  const { days, hours, minutes, seconds, isExpired } = useCountdown(targetDate);
+  const { days, hours, minutes, isExpired } = useCountdown(targetDate);
 
   if (isExpired) {
     return (
       <div className="text-center">
-        <div className="text-4xl font-bold text-emerald-400">PLACEMENT TIME!</div>
-        <p className="text-zinc-400 mt-2">You got this! Go crush it!</p>
+        <p className="text-emerald-400 font-medium">Placement Time</p>
+        <p className="text-zinc-500 text-sm mt-1">Go get it.</p>
       </div>
     );
   }
 
   return (
     <div className="text-center">
-      <p className="text-zinc-400 text-sm mb-2">Time until placements</p>
+      <p className="text-zinc-500 text-xs uppercase tracking-wider mb-2">Time Left</p>
       <div className="flex justify-center gap-4">
-        <TimeBlock value={days} label="DAYS" highlight={days <= 7} />
-        <TimeBlock value={hours} label="HRS" />
-        <TimeBlock value={minutes} label="MIN" />
-        <TimeBlock value={seconds} label="SEC" />
+        <div>
+          <p className="text-3xl font-bold text-zinc-100">{days}</p>
+          <p className="text-zinc-600 text-xs">days</p>
+        </div>
+        <div className="text-zinc-700 text-2xl font-light">:</div>
+        <div>
+          <p className="text-3xl font-bold text-zinc-100">{String(hours).padStart(2, '0')}</p>
+          <p className="text-zinc-600 text-xs">hrs</p>
+        </div>
+        <div className="text-zinc-700 text-2xl font-light">:</div>
+        <div>
+          <p className="text-3xl font-bold text-zinc-100">{String(minutes).padStart(2, '0')}</p>
+          <p className="text-zinc-600 text-xs">min</p>
+        </div>
       </div>
       {days <= 7 && (
-        <p className="text-red-400 text-sm mt-3 font-medium animate-pulse">
-          Final week! Every hour counts!
-        </p>
+        <p className="text-red-400/80 text-xs mt-3">Final week</p>
       )}
-    </div>
-  );
-}
-
-function TimeBlock({ value, label, highlight = false }: { value: number; label: string; highlight?: boolean }) {
-  return (
-    <div className={`
-      flex flex-col items-center min-w-[60px] p-3 rounded-lg
-      ${highlight ? 'bg-red-950/50 border border-red-700' : 'bg-zinc-800'}
-    `}>
-      <span className={`text-3xl font-bold ${highlight ? 'text-red-400' : 'text-zinc-100'}`}>
-        {String(value).padStart(2, '0')}
-      </span>
-      <span className="text-xs text-zinc-500">{label}</span>
     </div>
   );
 }

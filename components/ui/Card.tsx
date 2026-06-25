@@ -10,14 +10,14 @@ interface CardProps {
 
 export function Card({ children, className = '', variant = 'default' }: CardProps) {
   const variants = {
-    default: 'bg-zinc-800 border-zinc-700',
-    danger: 'bg-red-950/50 border-red-800',
-    success: 'bg-emerald-950/50 border-emerald-800',
-    warning: 'bg-amber-950/50 border-amber-800',
+    default: 'bg-zinc-900/50 border-zinc-800/50',
+    danger: 'bg-red-950/20 border-red-900/30',
+    success: 'bg-emerald-950/20 border-emerald-900/30',
+    warning: 'bg-amber-950/20 border-amber-900/30',
   };
 
   return (
-    <div className={`rounded-xl border p-4 ${variants[variant]} ${className}`}>
+    <div className={`rounded-xl border p-5 ${variants[variant]} ${className}`}>
       {children}
     </div>
   );
@@ -33,8 +33,8 @@ export function CardHeader({ title, subtitle, action }: CardHeaderProps) {
   return (
     <div className="flex items-center justify-between mb-4">
       <div>
-        <h3 className="font-semibold text-zinc-100">{title}</h3>
-        {subtitle && <p className="text-sm text-zinc-400">{subtitle}</p>}
+        <h3 className="text-sm font-medium text-zinc-300">{title}</h3>
+        {subtitle && <p className="text-xs text-zinc-600 mt-0.5">{subtitle}</p>}
       </div>
       {action && <div>{action}</div>}
     </div>

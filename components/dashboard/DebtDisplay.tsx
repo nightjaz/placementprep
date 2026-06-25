@@ -10,12 +10,10 @@ export function DebtDisplay() {
 
   if (!inDebt) {
     return (
-      <Card variant="success">
-        <CardHeader title="Debt Status" subtitle="You're debt-free!" />
+      <Card>
+        <CardHeader title="Debt" subtitle="None" />
         <div className="text-center py-4">
-          <span className="text-4xl">✨</span>
-          <p className="text-emerald-400 mt-2 font-medium">No outstanding debt</p>
-          <p className="text-zinc-500 text-sm mt-1">Keep up the good work!</p>
+          <p className="text-zinc-500 text-sm">No outstanding debt</p>
         </div>
       </Card>
     );
@@ -23,37 +21,26 @@ export function DebtDisplay() {
 
   return (
     <Card variant="danger">
-      <CardHeader
-        title="⚠️ Outstanding Debt"
-        subtitle="Pay it off to stop XP bleeding!"
-      />
+      <CardHeader title="Debt" />
 
       <div className="space-y-4">
-        <div className="text-center py-2">
-          <p className="text-4xl font-bold text-red-400">-{debt.totalXP}</p>
-          <p className="text-zinc-400 text-sm">XP in debt (grows 10% daily!)</p>
+        <div className="text-center">
+          <p className="text-3xl font-bold text-red-400">-{debt.totalXP}</p>
+          <p className="text-zinc-500 text-xs mt-1">XP owed (10% daily interest)</p>
         </div>
 
-        <div className="space-y-2">
-          <p className="text-xs text-zinc-500 uppercase">You owe:</p>
-          <ul className="space-y-1">
-            {summary.map((item, i) => (
-              <li key={i} className="flex items-center gap-2 text-sm text-red-300">
-                <span className="text-red-500">•</span>
-                {item}
-              </li>
-            ))}
-          </ul>
+        <div className="space-y-1.5">
+          {summary.map((item, i) => (
+            <div key={i} className="flex items-center gap-2 text-sm text-red-300/80">
+              <div className="w-1 h-1 rounded-full bg-red-500/50" />
+              {item}
+            </div>
+          ))}
         </div>
 
-        <div className="bg-red-950/50 rounded-lg p-3 text-center">
-          <p className="text-red-400 text-sm font-medium">
-            Complete extra tasks to pay off debt!
-          </p>
-          <p className="text-red-300/70 text-xs mt-1">
-            Tasks beyond daily goals count toward debt repayment
-          </p>
-        </div>
+        <p className="text-zinc-600 text-xs text-center">
+          Complete extra tasks to pay off
+        </p>
       </div>
     </Card>
   );

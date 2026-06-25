@@ -5,14 +5,15 @@ import { UserProfile, DailyLog } from '@/types';
 import { CountdownTimer } from '@/components/dashboard/CountdownTimer';
 import { XPDisplay } from '@/components/dashboard/XPDisplay';
 import { StreakDisplay } from '@/components/dashboard/StreakDisplay';
-import { DailyProgress } from '@/components/dashboard/DailyProgress';
 import { DebtDisplay } from '@/components/dashboard/DebtDisplay';
 import { DSATracker, RecentProblems } from '@/components/tracking/DSATracker';
 import { FundamentalsTracker } from '@/components/tracking/FundamentalsTracker';
 import { ElectronicsTracker } from '@/components/tracking/ElectronicsTracker';
+import { TodaySchedule } from '@/components/schedule/TodaySchedule';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { getTodayLog } from '@/lib/storage';
+import { getCurrentDay } from '@/data/schedule';
 import Link from 'next/link';
 
 interface DashboardProps {
@@ -39,71 +40,87 @@ export function Dashboard({ profile, onRefresh }: DashboardProps) {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      <header className="bg-zinc-900 border-b border-zinc-800 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-4">
+      <header className="bg-zinc-900/80 backdrop-blur-sm border-b border-zinc-800/50 sticky top-0 z-10">
+        <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="text-2xl">⚔️</span>
-              <h1 className="text-xl font-bold">PlacementQuest</h1>
+              <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-lg" />
+              <h1 className="text-lg font-semibold tracking-tight">PlacementQuest</h1>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-orange-400">🔥 {profile.currentStreak}</span>
-                <span className="text-zinc-500">|</span>
-                <span className="text-emerald-400">{profile.totalXP.toLocaleString()} XP</span>
-                <span className="text-zinc-500">|</span>
-                <span className="text-amber-400">Lv.{profile.level}</span>
+            <div className="flex items-center gap-6 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-zinc-500">Streak</span>
+                <span className="text-orange-400 font-medium">{profile.currentStreak}d</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-zinc-500">XP</span>
+                <span className="text-emerald-400 font-medium">{profile.totalXP.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-zinc-500">Level</span>
+                <span className="text-amber-400 font-medium">{profile.level}</span>
               </div>
             </div>
           </div>
         </div>
       </header>
 
-      <nav className="bg-zinc-900/50 border-b border-zinc-800">
-        <div className="max-w-6xl mx-auto px-4">
+      <nav className="bg-zinc-900/50 border-b border-zinc-800/50">
+        <div className="max-w-6xl mx-auto px-6">
           <div className="flex gap-1">
             {[
-              { id: 'overview', label: 'Overview', icon: '📊' },
-              { id: 'dsa', label: 'DSA', icon: '💻' },
-              { id: 'fundamentals', label: 'CS Fundamentals', icon: '📚' },
-              { id: 'electronics', label: 'Electronics', icon: '⚡' },
+              { id: 'overview', label: 'Overview' },
+              { id: 'dsa', label: 'DSA' },
+              { id: 'fundamentals', label: 'CS Fundamentals' },
+              { id: 'electronics', label: 'Electronics' },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as Tab)}
                 className={`
-                  px-4 py-3 text-sm font-medium transition-colors
+                  px-4 py-3 text-sm font-medium transition-all relative
                   ${activeTab === tab.id
-                    ? 'text-emerald-400 border-b-2 border-emerald-400'
-                    : 'text-zinc-400 hover:text-zinc-200'}
+                    ? 'text-zinc-100'
+                    : 'text-zinc-500 hover:text-zinc-300'}
                 `}
               >
-                <span className="mr-2">{tab.icon}</span>
                 {tab.label}
+                {activeTab === tab.id && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500" />
+                )}
               </button>
             ))}
           </div>
         </div>
       </nav>
 
-      <main className="max-w-6xl mx-auto px-4 py-6">
+      <main className="max-w-6xl mx-auto px-6 py-8">
         {activeTab === 'overview' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
-              <Card>
-                <CountdownTimer targetDate={profile.placementDate} />
-              </Card>
+              <div className="grid grid-cols-2 gap-4">
+                <Card>
+                  <CountdownTimer targetDate={profile.placementDate} />
+                </Card>
+                <Card>
+                  <div className="text-center">
+                    <p className="text-zinc-500 text-xs uppercase tracking-wider mb-1">Current Day</p>
+                    <p className="text-4xl font-bold text-zinc-100">{getCurrentDay()}</p>
+                    <p className="text-zinc-500 text-sm">of 35</p>
+                  </div>
+                </Card>
+              </div>
+
+              <TodaySchedule onProblemComplete={refreshLog} />
 
               <Card>
-                <CardHeader title="Level Progress" />
+                <CardHeader title="Progress" />
                 <XPDisplay
                   totalXP={profile.totalXP}
                   level={profile.level}
                   streak={profile.currentStreak}
                 />
               </Card>
-
-              <DailyProgress log={log} settings={profile.settings} />
             </div>
 
             <div className="space-y-6">
@@ -125,28 +142,28 @@ export function Dashboard({ profile, onRefresh }: DashboardProps) {
                     variant="secondary"
                     className="w-full justify-start"
                   >
-                    <span className="mr-2">💻</span> Log DSA Problem
+                    Log DSA Problem
                   </Button>
                   <Button
                     onClick={() => setActiveTab('fundamentals')}
                     variant="secondary"
                     className="w-full justify-start"
                   >
-                    <span className="mr-2">📚</span> Log CS Topic
+                    Log CS Topic
                   </Button>
                   <Button
                     onClick={() => setActiveTab('electronics')}
                     variant="secondary"
                     className="w-full justify-start"
                   >
-                    <span className="mr-2">⚡</span> Log Electronics
+                    Log Electronics
                   </Button>
                   <Link href="/shame-wall" className="block">
                     <Button
                       variant="ghost"
-                      className="w-full justify-start text-red-400 hover:text-red-300"
+                      className="w-full justify-start text-zinc-500 hover:text-red-400"
                     >
-                      <span className="mr-2">💀</span> Shame Wall
+                      View Shame Wall
                     </Button>
                   </Link>
                 </div>
