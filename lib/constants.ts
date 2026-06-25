@@ -1,4 +1,4 @@
-import { LevelInfo } from '@/types';
+import { LevelInfo, UserSettings } from '@/types';
 
 export const XP_VALUES = {
   dsa: {

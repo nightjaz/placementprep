@@ -10,6 +10,9 @@ import { DSATracker, RecentProblems } from '@/components/tracking/DSATracker';
 import { FundamentalsTracker } from '@/components/tracking/FundamentalsTracker';
 import { ElectronicsTracker } from '@/components/tracking/ElectronicsTracker';
 import { TodaySchedule } from '@/components/schedule/TodaySchedule';
+import { CalendarGrid } from '@/components/calendar/CalendarGrid';
+import { HeatMap } from '@/components/calendar/HeatMap';
+import { RoastDisplay } from '@/components/roasts/RoastDisplay';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { getTodayLog } from '@/lib/storage';
@@ -21,7 +24,7 @@ interface DashboardProps {
   onRefresh: () => void;
 }
 
-type Tab = 'overview' | 'dsa' | 'fundamentals' | 'electronics';
+type Tab = 'overview' | 'dsa' | 'fundamentals' | 'electronics' | 'calendar';
 
 export function Dashboard({ profile, onRefresh }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<Tab>('overview');
@@ -73,6 +76,7 @@ export function Dashboard({ profile, onRefresh }: DashboardProps) {
               { id: 'dsa', label: 'DSA' },
               { id: 'fundamentals', label: 'CS Fundamentals' },
               { id: 'electronics', label: 'Electronics' },
+              { id: 'calendar', label: 'Calendar' },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -98,6 +102,8 @@ export function Dashboard({ profile, onRefresh }: DashboardProps) {
         {activeTab === 'overview' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
+              <RoastDisplay />
+
               <div className="grid grid-cols-2 gap-4">
                 <Card>
                   <CountdownTimer targetDate={profile.placementDate} />
@@ -112,6 +118,8 @@ export function Dashboard({ profile, onRefresh }: DashboardProps) {
               </div>
 
               <TodaySchedule onProblemComplete={refreshLog} />
+
+              <HeatMap />
 
               <Card>
                 <CardHeader title="Progress" />
@@ -195,6 +203,36 @@ export function Dashboard({ profile, onRefresh }: DashboardProps) {
               currentTopic={log.electronicsTopic}
               currentNumericals={log.numericalsSolved}
             />
+          </div>
+        )}
+
+        {activeTab === 'calendar' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <CalendarGrid />
+            <div className="space-y-6">
+              <HeatMap />
+              <Card>
+                <CardHeader title="Legend" />
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-3">
+                    <span className="w-4 h-4 rounded bg-emerald-500/80" />
+                    <span className="text-zinc-400">All problems completed</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="w-4 h-4 rounded bg-amber-500/80" />
+                    <span className="text-zinc-400">Partial completion</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="w-4 h-4 rounded bg-red-500/80" />
+                    <span className="text-zinc-400">Missed day</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="w-4 h-4 rounded bg-blue-500/80" />
+                    <span className="text-zinc-400">Today</span>
+                  </div>
+                </div>
+              </Card>
+            </div>
           </div>
         )}
       </main>

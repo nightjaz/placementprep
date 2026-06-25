@@ -1,16 +1,30 @@
 'use client';
 
-import { getStreakMilestones } from '@/lib/streak-manager';
+import { useState } from 'react';
+import { getStreakMilestones, useStreakFreeze, getStreakFreezeInfo } from '@/lib/streak-manager';
 import { getStreakMultiplier } from '@/lib/xp-calculator';
+import { Button } from '@/components/ui/Button';
 
 interface StreakDisplayProps {
   currentStreak: number;
   longestStreak: number;
+  onFreezeUsed?: () => void;
 }
 
-export function StreakDisplay({ currentStreak, longestStreak }: StreakDisplayProps) {
+export function StreakDisplay({ currentStreak, longestStreak, onFreezeUsed }: StreakDisplayProps) {
+  const [freezeMessage, setFreezeMessage] = useState<string | null>(null);
   const multiplier = getStreakMultiplier(currentStreak);
   const nextMilestone = getNextMilestone(currentStreak);
+  const freezeInfo = getStreakFreezeInfo();
+
+  const handleFreeze = () => {
+    const result = useStreakFreeze();
+    setFreezeMessage(result.message);
+    if (result.success && onFreezeUsed) {
+      onFreezeUsed();
+    }
+    setTimeout(() => setFreezeMessage(null), 3000);
+  };
 
   return (
     <div className="space-y-4">
@@ -36,6 +50,33 @@ export function StreakDisplay({ currentStreak, longestStreak }: StreakDisplayPro
         <span className="text-zinc-600">Best</span>
         <span className="text-zinc-400">{longestStreak} days</span>
       </div>
+
+      {currentStreak > 0 && (
+        <div className="pt-3 border-t border-zinc-800">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-zinc-600">Streak Freeze</span>
+            <span className="text-xs text-zinc-500">
+              {freezeInfo.freezesUsed}/{freezeInfo.maxFreezes} used this week
+            </span>
+          </div>
+          <Button
+            onClick={handleFreeze}
+            disabled={!freezeInfo.canUse}
+            variant="secondary"
+            size="sm"
+            className="w-full"
+          >
+            Freeze Streak ({freezeInfo.cost} XP)
+          </Button>
+          {freezeMessage && (
+            <p className={`text-xs mt-2 text-center ${
+              freezeMessage.includes('frozen') ? 'text-emerald-400' : 'text-red-400'
+            }`}>
+              {freezeMessage}
+            </p>
+          )}
+        </div>
+      )}
 
       {currentStreak === 0 && (
         <p className="text-zinc-600 text-sm text-center">

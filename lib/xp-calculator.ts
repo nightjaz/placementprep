@@ -143,3 +143,19 @@ export function calculateStreakDeathPenalty(streakLength: number): number {
   if (streakLength >= 8) return XP_DECAY.streakBroken.days8_14;
   return XP_DECAY.streakBroken.days1_7;
 }
+
+export function calculateOverachievementXP(extraProblems: number, difficulty: 'easy' | 'medium' | 'hard'): number {
+  const baseXP = XP_VALUES.dsa[difficulty];
+  return Math.floor(baseXP * 1.5 * extraProblems);
+}
+
+export function getEscalatingPenaltyMultiplier(consecutiveMissedDays: number): number {
+  if (consecutiveMissedDays >= 3) return 3.0;
+  if (consecutiveMissedDays >= 2) return 2.0;
+  return 1.0;
+}
+
+export function calculateEscalatingDecay(baseDecay: number, consecutiveMissedDays: number): number {
+  const multiplier = getEscalatingPenaltyMultiplier(consecutiveMissedDays);
+  return Math.floor(baseDecay * multiplier);
+}

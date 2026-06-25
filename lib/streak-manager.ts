@@ -2,6 +2,9 @@ import { getUserProfile, updateUserProfile, getTodayString, getDailyLog, addSham
 import { calculateStreakDeathPenalty, decayXP } from './xp-calculator';
 import { ShameEntry } from '@/types';
 
+const STREAK_FREEZE_COST = 500;
+const MAX_FREEZES_PER_WEEK = 1;
+
 function getDaysBetween(date1: string, date2: string): number {
   const d1 = new Date(date1);
   const d2 = new Date(date2);
@@ -128,4 +131,97 @@ export function getStreakMilestones(streak: number): string[] {
   if (streak >= 28) milestones.push('Month Master (2x XP)');
   if (streak >= 35) milestones.push('5-Week Placement God!');
   return milestones;
+}
+
+export function getStreakData(): {
+  currentStreak: number;
+  longestStreak: number;
+  missedDays: number;
+  freezesUsedThisWeek: number;
+  canUseFreeze: boolean;
+} {
+  const profile = getUserProfile();
+  if (!profile) {
+    return {
+      currentStreak: 0,
+      longestStreak: 0,
+      missedDays: 0,
+      freezesUsedThisWeek: 0,
+      canUseFreeze: false,
+    };
+  }
+
+  const freezesUsed = getFreezesUsedThisWeek();
+  const canUseFreeze = freezesUsed < MAX_FREEZES_PER_WEEK && profile.totalXP >= STREAK_FREEZE_COST;
+
+  const today = getTodayString();
+  const lastActive = profile.lastActiveDate;
+  const missedDays = getDaysBetween(lastActive, today) - 1;
+
+  return {
+    currentStreak: profile.currentStreak,
+    longestStreak: profile.longestStreak,
+    missedDays: Math.max(0, missedDays),
+    freezesUsedThisWeek: freezesUsed,
+    canUseFreeze,
+  };
+}
+
+function getFreezesUsedThisWeek(): number {
+  if (typeof window === 'undefined') return 0;
+  const weekStart = getWeekStart();
+  const stored = localStorage.getItem(`streak_freezes_${weekStart}`);
+  return stored ? parseInt(stored, 10) : 0;
+}
+
+function getWeekStart(): string {
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+  const weekStart = new Date(now.setDate(diff));
+  return weekStart.toISOString().split('T')[0];
+}
+
+export function useStreakFreeze(): { success: boolean; message: string } {
+  const profile = getUserProfile();
+  if (!profile) {
+    return { success: false, message: 'No profile found' };
+  }
+
+  if (profile.totalXP < STREAK_FREEZE_COST) {
+    return { success: false, message: `Need ${STREAK_FREEZE_COST} XP to freeze streak` };
+  }
+
+  const freezesUsed = getFreezesUsedThisWeek();
+  if (freezesUsed >= MAX_FREEZES_PER_WEEK) {
+    return { success: false, message: 'Already used freeze this week' };
+  }
+
+  decayXP(STREAK_FREEZE_COST);
+
+  const weekStart = getWeekStart();
+  localStorage.setItem(`streak_freezes_${weekStart}`, String(freezesUsed + 1));
+
+  const today = getTodayString();
+  updateUserProfile({ lastActiveDate: today });
+
+  return { success: true, message: `Streak frozen! -${STREAK_FREEZE_COST} XP` };
+}
+
+export function getStreakFreezeInfo(): {
+  cost: number;
+  freezesUsed: number;
+  maxFreezes: number;
+  canUse: boolean;
+} {
+  const profile = getUserProfile();
+  const freezesUsed = getFreezesUsedThisWeek();
+  const canUse = freezesUsed < MAX_FREEZES_PER_WEEK && (profile?.totalXP ?? 0) >= STREAK_FREEZE_COST;
+
+  return {
+    cost: STREAK_FREEZE_COST,
+    freezesUsed,
+    maxFreezes: MAX_FREEZES_PER_WEEK,
+    canUse,
+  };
 }
