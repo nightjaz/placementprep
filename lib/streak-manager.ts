@@ -192,22 +192,41 @@ export function markTodayActive(): void {
 
 export function initializeStreakFromHistory(): void {
   const profile = getUserProfile();
-  if (!profile || profile.currentStreak > 0) return;
+  if (!profile) return;
 
-  // Check if yesterday was a complete day
-  const yesterdayDayNumber = getCurrentDay() - 1;
-  if (yesterdayDayNumber < 1) return;
+  // Recalculate streak based on consecutive complete days
+  let streak = 0;
+  let checkDay = getCurrentDay() - 1;
 
-  const yesterdayLog = getDailyLog(getYesterdayString());
-  const wasCompleteYesterday = isDayComplete(yesterdayLog, yesterdayDayNumber);
+  while (checkDay >= 1) {
+    const checkDate = getDateForDayNumber(checkDay);
+    const log = getDailyLog(checkDate);
 
-  if (wasCompleteYesterday) {
+    if (isDayComplete(log, checkDay)) {
+      streak++;
+      checkDay--;
+    } else {
+      break;
+    }
+  }
+
+  // Only update if different
+  if (profile.currentStreak !== streak) {
     updateUserProfile({
-      currentStreak: 1,
-      longestStreak: Math.max(profile.longestStreak, 1),
-      lastActiveDate: getYesterdayString(),
+      currentStreak: streak,
+      longestStreak: Math.max(profile.longestStreak, streak),
+      lastActiveDate: streak > 0 ? getDateForDayNumber(getCurrentDay() - 1) : profile.lastActiveDate,
     });
   }
+}
+
+function getDateForDayNumber(dayNumber: number): string {
+  const start = new Date(2026, 5, 26); // June 26, 2026
+  start.setDate(start.getDate() + dayNumber - 1);
+  const year = start.getFullYear();
+  const month = String(start.getMonth() + 1).padStart(2, '0');
+  const day = String(start.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 export function getStreakMilestones(streak: number): string[] {

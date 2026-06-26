@@ -29,17 +29,11 @@ export function RoastDisplay({ forceShow = false }: RoastDisplayProps) {
       return;
     }
 
-    const shouldShowRoast = forceShow ||
-      streakData.currentStreak === 0 ||
-      debt.totalXP > 0 ||
-      streakData.missedDays > 0;
-
-    if (shouldShowRoast) {
-      const missedDays = streakData.missedDays || (streakData.currentStreak === 0 ? 1 : 0);
-      setMessage(getRandomRoast(missedDays));
-      setIsRoast(true);
-      setVisible(true);
-    }
+    // Always show roast if day is not complete
+    const missedDays = streakData.missedDays || (streakData.currentStreak === 0 ? 1 : 0);
+    setMessage(getRandomRoast(missedDays));
+    setIsRoast(true);
+    setVisible(true);
   }, [forceShow]);
 
   if (!visible || !message) {
