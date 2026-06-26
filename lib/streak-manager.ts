@@ -109,6 +109,17 @@ export function markTodayActive(): void {
   if (!profile) return;
 
   const today = getTodayString();
+
+  // If streak is 0 and we're doing work today, start the streak
+  if (profile.currentStreak === 0) {
+    updateUserProfile({
+      currentStreak: 1,
+      longestStreak: Math.max(profile.longestStreak, 1),
+      lastActiveDate: today,
+    });
+    return;
+  }
+
   if (profile.lastActiveDate !== today) {
     const { streakBroken } = checkAndUpdateStreak();
     if (!streakBroken) {
