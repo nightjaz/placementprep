@@ -33,7 +33,6 @@ export function Dashboard({ profile, onRefresh }: DashboardProps) {
 
   useEffect(() => {
     initializeStreakFromHistory();
-    onRefresh();
     setLog(getTodayLog());
   }, []);
 
