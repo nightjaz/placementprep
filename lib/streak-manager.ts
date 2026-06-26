@@ -133,6 +133,27 @@ export function markTodayActive(): void {
   }
 }
 
+export function initializeStreakFromHistory(): void {
+  const profile = getUserProfile();
+  if (!profile || profile.currentStreak > 0) return;
+
+  // Check if yesterday had activity - if so, set streak to 1
+  const yesterdayLog = getDailyLog(getYesterdayString());
+  const hadActivityYesterday = yesterdayLog && (
+    yesterdayLog.dsaProblems.length > 0 ||
+    yesterdayLog.fundamentalsTopic !== null ||
+    yesterdayLog.electronicsTopic !== null
+  );
+
+  if (hadActivityYesterday) {
+    updateUserProfile({
+      currentStreak: 1,
+      longestStreak: Math.max(profile.longestStreak, 1),
+      lastActiveDate: getYesterdayString(),
+    });
+  }
+}
+
 export function getStreakMilestones(streak: number): string[] {
   const milestones: string[] = [];
   if (streak >= 3) milestones.push('3-Day Warrior (1.1x XP)');

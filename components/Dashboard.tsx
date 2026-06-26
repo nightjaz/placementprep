@@ -17,6 +17,7 @@ import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { getTodayLog } from '@/lib/storage';
 import { getCurrentDay } from '@/data/schedule';
+import { initializeStreakFromHistory } from '@/lib/streak-manager';
 import Link from 'next/link';
 
 interface DashboardProps {
@@ -31,6 +32,8 @@ export function Dashboard({ profile, onRefresh }: DashboardProps) {
   const [log, setLog] = useState<DailyLog | null>(null);
 
   useEffect(() => {
+    initializeStreakFromHistory();
+    onRefresh();
     setLog(getTodayLog());
   }, []);
 
