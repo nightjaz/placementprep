@@ -621,14 +621,24 @@ export const SCHEDULE: DaySchedule[] = [
 ];
 
 export function getTodaySchedule(): DaySchedule | null {
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const today = `${year}-${month}-${day}`;
   return SCHEDULE.find(s => s.date === today) || null;
 }
 
 export function getCurrentDay(): number {
   const today = new Date();
-  const start = new Date(START_DATE);
-  const diffTime = today.getTime() - start.getTime();
+  const [startYear, startMonth, startDay] = START_DATE.split('-').map(Number);
+  const start = new Date(startYear, startMonth - 1, startDay);
+
+  // Use local date components to avoid timezone issues
+  const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const startMidnight = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+
+  const diffTime = todayMidnight.getTime() - startMidnight.getTime();
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
   return Math.max(1, Math.min(35, diffDays));
 }
