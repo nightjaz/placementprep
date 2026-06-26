@@ -18,6 +18,7 @@ interface ElectronicsTrackerProps {
 export function ElectronicsTracker({ onTopicAdded, currentTopic, currentNumericals = 0 }: ElectronicsTrackerProps) {
   const [category, setCategory] = useState<ElectronicsCategory>('analog');
   const [topicId, setTopicId] = useState('');
+  const [selectedSubtopics, setSelectedSubtopics] = useState<string[]>([]);
   const [numericalCount, setNumericalCount] = useState(0);
   const [confidence, setConfidence] = useState<1 | 2 | 3 | 4 | 5>(3);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,6 +37,7 @@ export function ElectronicsTracker({ onTopicAdded, currentTopic, currentNumerica
       category,
       topicName: selectedTopicData.name,
       formulasPracticed: [],
+      subTopicsCompleted: selectedSubtopics,
       numericalCount,
       confidence,
       timestamp: new Date().toISOString(),
@@ -56,6 +58,7 @@ export function ElectronicsTracker({ onTopicAdded, currentTopic, currentNumerica
     markTodayActive();
 
     setTopicId('');
+    setSelectedSubtopics([]);
     setNumericalCount(0);
     setConfidence(3);
     setIsSubmitting(false);
@@ -94,6 +97,7 @@ export function ElectronicsTracker({ onTopicAdded, currentTopic, currentNumerica
             onChange={(e) => {
               setCategory(e.target.value as ElectronicsCategory);
               setTopicId('');
+              setSelectedSubtopics([]);
             }}
             className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:outline-none focus:border-emerald-500"
           >
@@ -109,7 +113,10 @@ export function ElectronicsTracker({ onTopicAdded, currentTopic, currentNumerica
           <label className="block text-sm text-zinc-400 mb-1">Topic</label>
           <select
             value={topicId}
-            onChange={(e) => setTopicId(e.target.value)}
+            onChange={(e) => {
+              setTopicId(e.target.value);
+              setSelectedSubtopics([]);
+            }}
             className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:outline-none focus:border-emerald-500"
           >
             <option value="">Select a topic</option>
@@ -123,14 +130,44 @@ export function ElectronicsTracker({ onTopicAdded, currentTopic, currentNumerica
 
         {selectedTopicData && (
           <div className="bg-zinc-900/50 p-3 rounded-lg">
-            <p className="text-xs text-zinc-500 mb-2">Sub-topics to cover:</p>
-            <div className="flex flex-wrap gap-1">
-              {selectedTopicData.subTopics.map((sub) => (
-                <span key={sub} className="text-xs bg-zinc-800 text-zinc-400 px-2 py-1 rounded">
-                  {sub}
-                </span>
-              ))}
+            <p className="text-xs text-zinc-500 mb-2">
+              Sub-topics completed ({selectedSubtopics.length}/{selectedTopicData.subTopics.length}):
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {selectedTopicData.subTopics.map((sub) => {
+                const isSelected = selectedSubtopics.includes(sub);
+                return (
+                  <button
+                    key={sub}
+                    type="button"
+                    onClick={() => {
+                      setSelectedSubtopics(prev =>
+                        isSelected
+                          ? prev.filter(s => s !== sub)
+                          : [...prev, sub]
+                      );
+                    }}
+                    className={`
+                      text-xs px-2 py-1 rounded border transition-colors
+                      ${isSelected
+                        ? 'bg-emerald-600 border-emerald-500 text-white'
+                        : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500'}
+                    `}
+                  >
+                    {isSelected && '✓ '}{sub}
+                  </button>
+                );
+              })}
             </div>
+            {selectedTopicData.subTopics.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setSelectedSubtopics(selectedTopicData.subTopics)}
+                className="text-xs text-emerald-500 hover:text-emerald-400 mt-2"
+              >
+                Select all
+              </button>
+            )}
           </div>
         )}
 

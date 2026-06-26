@@ -52,7 +52,7 @@ export function Dashboard({ profile, onRefresh }: DashboardProps) {
             </div>
             <div className="flex items-center gap-6 text-sm">
               <div className="flex items-center gap-2">
-                <span className="text-zinc-500">Streak</span>
+                <span className="text-zinc-500">🔥 Streak</span>
                 <span className="text-orange-400 font-medium">{profile.currentStreak}d</span>
               </div>
               <div className="flex items-center gap-2">
@@ -133,7 +133,7 @@ export function Dashboard({ profile, onRefresh }: DashboardProps) {
 
             <div className="space-y-6">
               <Card>
-                <CardHeader title="Streak" />
+                <CardHeader title="🔥 Streak" />
                 <StreakDisplay
                   currentStreak={profile.currentStreak}
                   longestStreak={profile.longestStreak}

@@ -75,6 +75,7 @@ export interface ElectronicsTopic {
   category: ElectronicsCategory;
   topicName: string;
   formulasPracticed: string[];
+  subTopicsCompleted?: string[];
   numericalCount: number;
   confidence: 1 | 2 | 3 | 4 | 5;
   timestamp: string;
