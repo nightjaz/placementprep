@@ -1,3 +1,33 @@
+const CELEBRATION_MESSAGES = [
+  "DAY COMPLETE. You just outworked 90% of candidates.",
+  "LOCKED IN. This is what winners look like.",
+  "BEAST MODE. Your future self is thanking you.",
+  "CRUSHED IT. One day closer to that offer letter.",
+  "UNSTOPPABLE. Keep this energy and placements are yours.",
+  "ELITE. This consistency will pay dividends.",
+  "YOU SHOWED UP. Most people don't. That's the difference.",
+  "DONE. While others made excuses, you made progress.",
+  "CHAMPION ENERGY. This is how 2LPM candidates are built.",
+  "RELENTLESS. The grind recognizes the grind.",
+];
+
+const STREAK_CELEBRATIONS: Record<number, string[]> = {
+  3: ["3 DAYS STRAIGHT. You're building something real here."],
+  7: ["ONE WEEK STRONG. You're officially in the top 10%."],
+  14: ["TWO WEEKS. Most people quit by now. Not you."],
+  21: ["THREE WEEKS. Discipline is becoming habit."],
+  28: ["FOUR WEEKS. You're a different person than when you started."],
+  35: ["35 DAYS. YOU DID IT. Placements don't stand a chance."],
+};
+
+export function getRandomCelebration(streak: number): string {
+  // Check for milestone celebration first
+  if (STREAK_CELEBRATIONS[streak]) {
+    return STREAK_CELEBRATIONS[streak][0];
+  }
+  return CELEBRATION_MESSAGES[Math.floor(Math.random() * CELEBRATION_MESSAGES.length)];
+}
+
 const ROAST_THEMES = {
   friends: [
     "Your friends are pulling 2LPM while you're counting 12K. What's your excuse today?",

@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
-import { getRandomRoast } from '@/lib/roast-generator';
-import { getStreakData } from '@/lib/streak-manager';
+import { getRandomRoast, getRandomCelebration } from '@/lib/roast-generator';
+import { getStreakData, getTodayCompletionStatus } from '@/lib/streak-manager';
 import { getTotalDebt } from '@/lib/debt-system';
 import { getCurrentDay } from '@/data/schedule';
 
@@ -12,13 +12,22 @@ interface RoastDisplayProps {
 }
 
 export function RoastDisplay({ forceShow = false }: RoastDisplayProps) {
-  const [roast, setRoast] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [isRoast, setIsRoast] = useState(true);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const streakData = getStreakData();
     const debt = getTotalDebt();
-    const currentDay = getCurrentDay();
+    const completion = getTodayCompletionStatus();
+
+    // If day is complete, show celebration
+    if (completion.allComplete) {
+      setMessage(getRandomCelebration(streakData.currentStreak));
+      setIsRoast(false);
+      setVisible(true);
+      return;
+    }
 
     const shouldShowRoast = forceShow ||
       streakData.currentStreak === 0 ||
@@ -27,41 +36,56 @@ export function RoastDisplay({ forceShow = false }: RoastDisplayProps) {
 
     if (shouldShowRoast) {
       const missedDays = streakData.missedDays || (streakData.currentStreak === 0 ? 1 : 0);
-      const newRoast = getRandomRoast(missedDays);
-      setRoast(newRoast);
+      setMessage(getRandomRoast(missedDays));
+      setIsRoast(true);
       setVisible(true);
     }
   }, [forceShow]);
 
-  if (!visible || !roast) {
+  if (!visible || !message) {
     return null;
   }
 
-  return (
-    <Card variant="danger" className="relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-red-950/20 to-transparent" />
-
-      <div className="relative">
-        <div className="flex items-start gap-3">
-          <div className="w-1 h-full min-h-[40px] bg-red-500/50 rounded-full flex-shrink-0" />
-          <div>
-            <p className="text-sm text-red-200/90 leading-relaxed">
-              {roast}
-            </p>
-          </div>
+  if (!isRoast) {
+    return (
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-emerald-900/40 via-emerald-800/30 to-emerald-900/40 border border-emerald-500/30 p-6">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(16,185,129,0.15),transparent_50%)]" />
+        <div className="relative text-center">
+          <p className="text-2xl md:text-3xl font-bold text-emerald-300 leading-tight">
+            {message}
+          </p>
         </div>
-
         <button
           onClick={() => setVisible(false)}
-          className="absolute top-0 right-0 text-zinc-600 hover:text-zinc-400 transition-colors p-1"
+          className="absolute top-2 right-2 text-emerald-600 hover:text-emerald-400 transition-colors p-1"
           aria-label="Dismiss"
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
-    </Card>
+    );
+  }
+
+  return (
+    <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-red-950/50 via-red-900/40 to-red-950/50 border border-red-500/30 p-6">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(239,68,68,0.15),transparent_50%)]" />
+      <div className="relative text-center">
+        <p className="text-xl md:text-2xl font-bold text-red-300 leading-tight">
+          {message}
+        </p>
+      </div>
+      <button
+        onClick={() => setVisible(false)}
+        className="absolute top-2 right-2 text-red-600 hover:text-red-400 transition-colors p-1"
+        aria-label="Dismiss"
+      >
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
   );
 }
 

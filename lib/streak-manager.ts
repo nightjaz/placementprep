@@ -1,9 +1,60 @@
 import { getUserProfile, updateUserProfile, getTodayString, getDailyLog, addShameEntry } from './storage';
 import { calculateStreakDeathPenalty, decayXP } from './xp-calculator';
-import { ShameEntry } from '@/types';
+import { ShameEntry, DailyLog } from '@/types';
+import { getScheduleByDay, getCurrentDay } from '@/data/schedule';
 
 const STREAK_FREEZE_COST = 500;
 const MAX_FREEZES_PER_WEEK = 1;
+
+export function isDayComplete(log: DailyLog | null, dayNumber: number): boolean {
+  if (!log) return false;
+
+  const schedule = getScheduleByDay(dayNumber);
+  if (!schedule) return false;
+
+  // Check all DSA problems are done
+  const completedProblems = new Set(log.dsaProblems.map(p => p.name));
+  const allDsaDone = schedule.problems.every(p => completedProblems.has(p.name));
+
+  // Check fundamentals done
+  const fundamentalsDone = log.fundamentalsTopic !== null;
+
+  // Check electronics done
+  const electronicsDone = log.electronicsTopic !== null;
+
+  return allDsaDone && fundamentalsDone && electronicsDone;
+}
+
+export function getTodayCompletionStatus(): {
+  dsaDone: number;
+  dsaTotal: number;
+  fundamentalsDone: boolean;
+  electronicsDone: boolean;
+  allComplete: boolean;
+} {
+  const dayNumber = getCurrentDay();
+  const schedule = getScheduleByDay(dayNumber);
+  const log = getDailyLog(getTodayString());
+
+  if (!schedule) {
+    return { dsaDone: 0, dsaTotal: 0, fundamentalsDone: false, electronicsDone: false, allComplete: false };
+  }
+
+  const completedProblems = new Set(log?.dsaProblems.map(p => p.name) || []);
+  const dsaDone = schedule.problems.filter(p => completedProblems.has(p.name)).length;
+
+  const fundamentalsDone = log?.fundamentalsTopic !== null;
+  const electronicsDone = log?.electronicsTopic !== null;
+  const allComplete = dsaDone === schedule.problems.length && fundamentalsDone && electronicsDone;
+
+  return {
+    dsaDone,
+    dsaTotal: schedule.problems.length,
+    fundamentalsDone,
+    electronicsDone,
+    allComplete,
+  };
+}
 
 function getDaysBetween(date1: string, date2: string): number {
   const d1 = new Date(date1);
@@ -112,27 +163,30 @@ export function markTodayActive(): void {
   if (!profile) return;
 
   const today = getTodayString();
+  const dayNumber = getCurrentDay();
+  const log = getDailyLog(today);
 
-  // If streak is 0 and we're doing work today, start the streak
-  if (profile.currentStreak === 0) {
+  // Only count the day if ALL tasks are complete
+  if (!isDayComplete(log, dayNumber)) {
+    return;
+  }
+
+  // Already counted this day
+  if (profile.lastActiveDate === today) {
+    return;
+  }
+
+  // Check if streak should be broken first
+  const { streakBroken } = checkAndUpdateStreak();
+
+  if (streakBroken || profile.currentStreak === 0) {
     updateUserProfile({
       currentStreak: 1,
       longestStreak: Math.max(profile.longestStreak, 1),
       lastActiveDate: today,
     });
-    return;
-  }
-
-  if (profile.lastActiveDate !== today) {
-    const { streakBroken } = checkAndUpdateStreak();
-    if (!streakBroken) {
-      incrementStreak();
-    } else {
-      updateUserProfile({
-        currentStreak: 1,
-        lastActiveDate: today,
-      });
-    }
+  } else {
+    incrementStreak();
   }
 }
 
@@ -140,15 +194,14 @@ export function initializeStreakFromHistory(): void {
   const profile = getUserProfile();
   if (!profile || profile.currentStreak > 0) return;
 
-  // Check if yesterday had activity - if so, set streak to 1
-  const yesterdayLog = getDailyLog(getYesterdayString());
-  const hadActivityYesterday = yesterdayLog && (
-    yesterdayLog.dsaProblems.length > 0 ||
-    yesterdayLog.fundamentalsTopic !== null ||
-    yesterdayLog.electronicsTopic !== null
-  );
+  // Check if yesterday was a complete day
+  const yesterdayDayNumber = getCurrentDay() - 1;
+  if (yesterdayDayNumber < 1) return;
 
-  if (hadActivityYesterday) {
+  const yesterdayLog = getDailyLog(getYesterdayString());
+  const wasCompleteYesterday = isDayComplete(yesterdayLog, yesterdayDayNumber);
+
+  if (wasCompleteYesterday) {
     updateUserProfile({
       currentStreak: 1,
       longestStreak: Math.max(profile.longestStreak, 1),
