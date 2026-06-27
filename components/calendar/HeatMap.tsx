@@ -55,12 +55,12 @@ export function HeatMap() {
         <p className="text-xs text-zinc-500">{totalProblems} problems</p>
       </div>
 
-      <div className="grid grid-cols-7 gap-1.5">
+      <div className="grid grid-cols-7 gap-0.5">
         {data.map((d) => (
           <div
             key={d.day}
             className={`
-              w-4 h-4 rounded-sm
+              aspect-square rounded-sm
               ${intensityColors[d.intensity]}
               ${d.day === currentDay ? 'ring-1 ring-blue-400' : ''}
             `}
