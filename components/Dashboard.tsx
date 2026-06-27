@@ -101,12 +101,13 @@ export function Dashboard({ profile, onRefresh }: DashboardProps) {
         </div>
       </nav>
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-4 py-6">
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <LaggingTopics onComplete={refreshLog} />
+          <div className="space-y-6">
+            <LaggingTopics onComplete={refreshLog} />
 
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
               <RoastDisplay />
 
               <div className="grid grid-cols-2 gap-4">
@@ -182,6 +183,7 @@ export function Dashboard({ profile, onRefresh }: DashboardProps) {
                 </div>
               </Card>
             </div>
+          </div>
           </div>
         )}
 

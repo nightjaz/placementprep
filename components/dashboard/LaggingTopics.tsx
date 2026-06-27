@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
-import { getTodayCompletionStatus } from '@/lib/streak-manager';
-import { getCurrentDay, getScheduleByDay } from '@/data/schedule';
-import { getTodayLog, saveDailyLog, generateId } from '@/lib/storage';
+import { getCurrentDay, getScheduleByDay, DaySchedule } from '@/data/schedule';
+import { getDailyLog, saveDailyLog, generateId } from '@/lib/storage';
+import { DailyLog } from '@/types';
 import { calculateFundamentalsXP, calculateElectronicsXP, awardXP } from '@/lib/xp-calculator';
 import { markTodayActive } from '@/lib/streak-manager';
 import { FundamentalsTopic, ElectronicsTopic, FundamentalsCategory, ElectronicsCategory } from '@/types';
@@ -13,54 +13,107 @@ interface LaggingTopicsProps {
   onComplete?: () => void;
 }
 
+interface LaggingItem {
+  day: number;
+  date: string;
+  type: 'dsa' | 'cs' | 'ece';
+  label: string;
+  detail: string;
+  schedule: DaySchedule;
+}
+
+function getDateForDayNumber(dayNumber: number): string {
+  const start = new Date(2026, 5, 26); // June 26, 2026
+  start.setDate(start.getDate() + dayNumber - 1);
+  const year = start.getFullYear();
+  const month = String(start.getMonth() + 1).padStart(2, '0');
+  const day = String(start.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export function LaggingTopics({ onComplete }: LaggingTopicsProps) {
-  const [status, setStatus] = useState<ReturnType<typeof getTodayCompletionStatus> | null>(null);
-  const [schedule, setSchedule] = useState<ReturnType<typeof getScheduleByDay>>(null);
+  const [laggingItems, setLaggingItems] = useState<LaggingItem[]>([]);
+
+  const calculateLagging = () => {
+    const currentDay = getCurrentDay();
+    const items: LaggingItem[] = [];
+
+    // Check all days from day 1 to today
+    for (let day = 1; day <= currentDay; day++) {
+      const schedule = getScheduleByDay(day);
+      if (!schedule) continue;
+
+      const dateStr = getDateForDayNumber(day);
+      const log = getDailyLog(dateStr);
+
+      // Check DSA problems
+      const completedProblems = new Set(log?.dsaProblems.map(p => p.name) || []);
+      const dsaDone = schedule.problems.filter(p => completedProblems.has(p.name)).length;
+      if (dsaDone < schedule.problems.length && schedule.problems.length > 0) {
+        items.push({
+          day,
+          date: dateStr,
+          type: 'dsa',
+          label: `Day ${day} DSA`,
+          detail: `${dsaDone}/${schedule.problems.length} - ${schedule.topic}`,
+          schedule,
+        });
+      }
+
+      // Check CS fundamentals
+      if (!log?.fundamentalsTopic) {
+        items.push({
+          day,
+          date: dateStr,
+          type: 'cs',
+          label: `Day ${day} ${schedule.cs.category}`,
+          detail: schedule.cs.topic,
+          schedule,
+        });
+      }
+
+      // Check Electronics
+      if (!log?.electronicsTopic) {
+        items.push({
+          day,
+          date: dateStr,
+          type: 'ece',
+          label: `Day ${day} ${schedule.ece.category}`,
+          detail: schedule.ece.topic,
+          schedule,
+        });
+      }
+    }
+
+    setLaggingItems(items);
+  };
 
   useEffect(() => {
-    setStatus(getTodayCompletionStatus());
-    setSchedule(getScheduleByDay(getCurrentDay()));
+    calculateLagging();
   }, []);
 
   const refresh = () => {
-    setStatus(getTodayCompletionStatus());
+    calculateLagging();
     onComplete?.();
   };
 
-  if (!status || !schedule) return null;
+  const handleQuickComplete = (item: LaggingItem) => {
+    const existing = getDailyLog(item.date);
+    const log: DailyLog = existing || {
+      date: item.date,
+      dsaProblems: [],
+      fundamentalsTopic: null,
+      electronicsTopic: null,
+      numericalsSolved: 0,
+      checkIns: [],
+      xpEarned: 0,
+      xpDecayed: 0,
+      questsCompleted: [],
+      debtPaid: [],
+      notes: '',
+    };
 
-  const laggingItems: { type: 'dsa' | 'cs' | 'ece'; label: string; detail: string }[] = [];
-
-  if (status.dsaDone < status.dsaTotal) {
-    laggingItems.push({
-      type: 'dsa',
-      label: 'DSA Problems',
-      detail: `${status.dsaDone}/${status.dsaTotal} done`,
-    });
-  }
-
-  if (!status.fundamentalsDone) {
-    laggingItems.push({
-      type: 'cs',
-      label: schedule.cs.category,
-      detail: schedule.cs.topic,
-    });
-  }
-
-  if (!status.electronicsDone) {
-    laggingItems.push({
-      type: 'ece',
-      label: schedule.ece.category,
-      detail: schedule.ece.topic,
-    });
-  }
-
-  if (laggingItems.length === 0) return null;
-
-  const handleQuickComplete = (type: 'cs' | 'ece') => {
-    const log = getTodayLog();
-
-    if (type === 'cs' && schedule) {
+    if (item.type === 'cs') {
       const categoryMap: Record<string, FundamentalsCategory> = {
         'OS': 'os',
         'DBMS': 'dbms',
@@ -69,9 +122,9 @@ export function LaggingTopics({ onComplete }: LaggingTopicsProps) {
 
       const topic: FundamentalsTopic = {
         id: generateId(),
-        category: categoryMap[schedule.cs.category] || 'os',
-        topicName: schedule.cs.topic,
-        subTopics: schedule.cs.subtopics,
+        category: categoryMap[item.schedule.cs.category] || 'os',
+        topicName: item.schedule.cs.topic,
+        subTopics: item.schedule.cs.subtopics,
         confidence: 3,
         resourcesUsed: [],
         timestamp: new Date().toISOString(),
@@ -84,10 +137,9 @@ export function LaggingTopics({ onComplete }: LaggingTopicsProps) {
 
       log.fundamentalsTopic = topic;
       saveDailyLog(log);
-      markTodayActive();
     }
 
-    if (type === 'ece' && schedule) {
+    if (item.type === 'ece') {
       const categoryMap: Record<string, ElectronicsCategory> = {
         'Digital': 'digital',
         'Analog': 'analog',
@@ -96,10 +148,10 @@ export function LaggingTopics({ onComplete }: LaggingTopicsProps) {
 
       const topic: ElectronicsTopic = {
         id: generateId(),
-        category: categoryMap[schedule.ece.category] || 'digital',
-        topicName: schedule.ece.topic,
+        category: categoryMap[item.schedule.ece.category] || 'digital',
+        topicName: item.schedule.ece.topic,
         formulasPracticed: [],
-        subTopicsCompleted: schedule.ece.subtopics,
+        subTopicsCompleted: item.schedule.ece.subtopics,
         numericalCount: 0,
         confidence: 3,
         timestamp: new Date().toISOString(),
@@ -113,51 +165,107 @@ export function LaggingTopics({ onComplete }: LaggingTopicsProps) {
       log.electronicsTopic = topic;
       log.numericalsSolved = 0;
       saveDailyLog(log);
+    }
+
+    // Update streak if this is today
+    const today = getCurrentDay();
+    if (item.day === today) {
       markTodayActive();
     }
 
     refresh();
   };
 
-  const streakWarning = !status.streakEligible;
+  if (laggingItems.length === 0) return null;
+
+  const csItems = laggingItems.filter(i => i.type === 'cs');
+  const eceItems = laggingItems.filter(i => i.type === 'ece');
+  const dsaItems = laggingItems.filter(i => i.type === 'dsa');
 
   return (
     <Card variant="danger">
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-red-400 text-lg">!</span>
-            <h3 className="text-red-400 font-medium">Lagging Behind</h3>
+            <span className="text-red-400 text-xl">!</span>
+            <h3 className="text-red-400 font-semibold text-lg">Lagging Behind</h3>
           </div>
-          <span className="text-zinc-500 text-sm">{status.completionPercent}% done</span>
+          <span className="text-red-300/70 text-sm">{laggingItems.length} incomplete</span>
         </div>
 
-        {streakWarning && (
-          <p className="text-red-300/70 text-xs">
-            Need 70% to maintain streak — complete more tasks!
-          </p>
-        )}
-
-        <div className="space-y-2">
-          {laggingItems.map((item) => (
-            <div
-              key={item.type}
-              className="flex items-center justify-between bg-red-950/30 border border-red-900/50 rounded-lg px-3 py-2"
-            >
-              <div>
-                <p className="text-red-300 text-sm font-medium">{item.label}</p>
-                <p className="text-red-400/60 text-xs">{item.detail}</p>
-              </div>
-              {(item.type === 'cs' || item.type === 'ece') && (
-                <button
-                  onClick={() => handleQuickComplete(item.type as 'cs' | 'ece')}
-                  className="text-xs bg-red-500/20 hover:bg-red-500/30 text-red-300 px-3 py-1.5 rounded transition-colors"
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {/* CS Fundamentals */}
+          {csItems.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-red-300/80 text-xs font-medium uppercase tracking-wider">CS Fundamentals ({csItems.length})</p>
+              {csItems.slice(0, 5).map((item) => (
+                <div
+                  key={`${item.day}-${item.type}`}
+                  className="flex items-center justify-between bg-red-950/30 border border-red-900/50 rounded-lg px-3 py-2"
                 >
-                  Mark Done
-                </button>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-red-300 text-sm font-medium truncate">{item.label}</p>
+                    <p className="text-red-400/60 text-xs truncate">{item.detail}</p>
+                  </div>
+                  <button
+                    onClick={() => handleQuickComplete(item)}
+                    className="text-xs bg-red-500/20 hover:bg-red-500/30 text-red-300 px-2 py-1 rounded transition-colors ml-2 flex-shrink-0"
+                  >
+                    Done
+                  </button>
+                </div>
+              ))}
+              {csItems.length > 5 && (
+                <p className="text-red-400/50 text-xs">+{csItems.length - 5} more</p>
               )}
             </div>
-          ))}
+          )}
+
+          {/* Electronics */}
+          {eceItems.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-red-300/80 text-xs font-medium uppercase tracking-wider">Electronics ({eceItems.length})</p>
+              {eceItems.slice(0, 5).map((item) => (
+                <div
+                  key={`${item.day}-${item.type}`}
+                  className="flex items-center justify-between bg-red-950/30 border border-red-900/50 rounded-lg px-3 py-2"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-red-300 text-sm font-medium truncate">{item.label}</p>
+                    <p className="text-red-400/60 text-xs truncate">{item.detail}</p>
+                  </div>
+                  <button
+                    onClick={() => handleQuickComplete(item)}
+                    className="text-xs bg-red-500/20 hover:bg-red-500/30 text-red-300 px-2 py-1 rounded transition-colors ml-2 flex-shrink-0"
+                  >
+                    Done
+                  </button>
+                </div>
+              ))}
+              {eceItems.length > 5 && (
+                <p className="text-red-400/50 text-xs">+{eceItems.length - 5} more</p>
+              )}
+            </div>
+          )}
+
+          {/* DSA */}
+          {dsaItems.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-red-300/80 text-xs font-medium uppercase tracking-wider">DSA ({dsaItems.length})</p>
+              {dsaItems.slice(0, 5).map((item) => (
+                <div
+                  key={`${item.day}-${item.type}`}
+                  className="bg-red-950/30 border border-red-900/50 rounded-lg px-3 py-2"
+                >
+                  <p className="text-red-300 text-sm font-medium truncate">{item.label}</p>
+                  <p className="text-red-400/60 text-xs truncate">{item.detail}</p>
+                </div>
+              ))}
+              {dsaItems.length > 5 && (
+                <p className="text-red-400/50 text-xs">+{dsaItems.length - 5} more</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </Card>
