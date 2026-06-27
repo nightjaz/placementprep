@@ -5,7 +5,6 @@ import { UserProfile, DailyLog } from '@/types';
 import { CountdownTimer } from '@/components/dashboard/CountdownTimer';
 import { XPDisplay } from '@/components/dashboard/XPDisplay';
 import { StreakDisplay } from '@/components/dashboard/StreakDisplay';
-import { DebtDisplay } from '@/components/dashboard/DebtDisplay';
 import { LaggingTopics } from '@/components/dashboard/LaggingTopics';
 import { DSATracker, RecentProblems } from '@/components/tracking/DSATracker';
 import { FundamentalsTracker } from '@/components/tracking/FundamentalsTracker';
@@ -145,8 +144,6 @@ export function Dashboard({ profile, onRefresh }: DashboardProps) {
               </Card>
 
               <HeatMap />
-
-              <DebtDisplay />
 
               <Card>
                 <CardHeader title="Quick Actions" />
