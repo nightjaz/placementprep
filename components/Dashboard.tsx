@@ -125,8 +125,6 @@ export function Dashboard({ profile, onRefresh }: DashboardProps) {
 
               <TodaySchedule onProblemComplete={refreshLog} />
 
-              <HeatMap />
-
               <Card>
                 <CardHeader title="Progress" />
                 <XPDisplay
@@ -145,6 +143,8 @@ export function Dashboard({ profile, onRefresh }: DashboardProps) {
                   longestStreak={profile.longestStreak}
                 />
               </Card>
+
+              <HeatMap />
 
               <DebtDisplay />
 

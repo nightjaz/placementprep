@@ -1,5 +1,6 @@
 'use client';
 
+import { Card, CardHeader } from '@/components/ui/Card';
 import { getScheduleByDay, getCurrentDay } from '@/data/schedule';
 import { getDailyLog } from '@/lib/storage';
 
@@ -48,21 +49,33 @@ export function HeatMap() {
   ];
 
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex items-center gap-0.5">
+    <Card>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-sm font-medium text-zinc-300">Progress</p>
+        <p className="text-xs text-zinc-500">{totalProblems} problems</p>
+      </div>
+
+      <div className="grid grid-cols-7 gap-1.5">
         {data.map((d) => (
           <div
             key={d.day}
             className={`
-              w-2.5 h-2.5 rounded-sm
+              w-4 h-4 rounded-sm
               ${intensityColors[d.intensity]}
-              ${d.day === currentDay ? 'ring-1 ring-blue-400/50' : ''}
+              ${d.day === currentDay ? 'ring-1 ring-blue-400' : ''}
             `}
             title={`Day ${d.day}: ${d.problems} problems`}
           />
         ))}
       </div>
-      <span className="text-xs text-zinc-500">{totalProblems} solved</span>
-    </div>
+
+      <div className="flex items-center justify-end gap-1 mt-3">
+        <span className="text-xs text-zinc-600">Less</span>
+        {intensityColors.map((color, i) => (
+          <div key={i} className={`w-2.5 h-2.5 rounded-sm ${color}`} />
+        ))}
+        <span className="text-xs text-zinc-600">More</span>
+      </div>
+    </Card>
   );
 }
