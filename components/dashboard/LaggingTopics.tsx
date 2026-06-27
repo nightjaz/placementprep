@@ -38,8 +38,8 @@ export function LaggingTopics({ onComplete }: LaggingTopicsProps) {
     const currentDay = getCurrentDay();
     const items: LaggingItem[] = [];
 
-    // Check all days from day 1 to today
-    for (let day = 1; day <= currentDay; day++) {
+    // Check all days from day 1 to yesterday (not including today)
+    for (let day = 1; day < currentDay; day++) {
       const schedule = getScheduleByDay(day);
       if (!schedule) continue;
 
@@ -66,8 +66,8 @@ export function LaggingTopics({ onComplete }: LaggingTopicsProps) {
           day,
           date: dateStr,
           type: 'cs',
-          label: `Day ${day} ${schedule.cs.category}`,
-          detail: schedule.cs.topic,
+          label: `Day ${day} ${schedule.cs.category}: ${schedule.cs.topic}`,
+          detail: schedule.cs.subtopics.join(', '),
           schedule,
         });
       }
@@ -78,8 +78,8 @@ export function LaggingTopics({ onComplete }: LaggingTopicsProps) {
           day,
           date: dateStr,
           type: 'ece',
-          label: `Day ${day} ${schedule.ece.category}`,
-          detail: schedule.ece.topic,
+          label: `Day ${day} ${schedule.ece.category}: ${schedule.ece.topic}`,
+          detail: schedule.ece.subtopics.join(', '),
           schedule,
         });
       }
