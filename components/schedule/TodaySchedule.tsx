@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/Button';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { DaySchedule, ScheduledProblem, getCurrentDay, getScheduleByDay } from '@/data/schedule';
 import { getTodayLog, saveDailyLog, generateId } from '@/lib/storage';
-import { calculateDSAXP, awardXP } from '@/lib/xp-calculator';
+import { calculateDSAXP, calculateFundamentalsXP, calculateElectronicsXP, awardXP } from '@/lib/xp-calculator';
 import { markTodayActive } from '@/lib/streak-manager';
 import { adjustScheduleForBootcamp, getAvailableTopics } from '@/lib/bootcamp-sync';
-import { DSAProblem } from '@/types';
+import { DSAProblem, FundamentalsTopic, ElectronicsTopic, FundamentalsCategory, ElectronicsCategory } from '@/types';
 
 interface TodayScheduleProps {
   onProblemComplete?: () => void;
@@ -167,6 +167,84 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
     }
   };
 
+  const handleCsToggle = (schedule: DaySchedule) => {
+    const log = getTodayLog();
+
+    if (csCompleted) {
+      log.fundamentalsTopic = null;
+      saveDailyLog(log);
+      setCsCompleted(false);
+    } else {
+      const categoryMap: Record<string, FundamentalsCategory> = {
+        'OS': 'os',
+        'DBMS': 'dbms',
+        'CN': 'cn',
+      };
+
+      const topic: FundamentalsTopic = {
+        id: generateId(),
+        category: categoryMap[schedule.cs.category] || 'os',
+        topicName: schedule.cs.topic,
+        subTopics: schedule.cs.subtopics,
+        confidence: 3,
+        resourcesUsed: [],
+        timestamp: new Date().toISOString(),
+        xpAwarded: 0,
+      };
+
+      const baseXP = calculateFundamentalsXP(topic);
+      const finalXP = awardXP(baseXP);
+      topic.xpAwarded = finalXP;
+
+      log.fundamentalsTopic = topic;
+      saveDailyLog(log);
+      setCsCompleted(true);
+
+      markTodayActive();
+      onProblemComplete?.();
+    }
+  };
+
+  const handleEceToggle = (schedule: DaySchedule) => {
+    const log = getTodayLog();
+
+    if (eceCompleted) {
+      log.electronicsTopic = null;
+      saveDailyLog(log);
+      setEceCompleted(false);
+    } else {
+      const categoryMap: Record<string, ElectronicsCategory> = {
+        'Digital': 'digital',
+        'Analog': 'analog',
+        'Embedded': 'embedded',
+      };
+
+      const topic: ElectronicsTopic = {
+        id: generateId(),
+        category: categoryMap[schedule.ece.category] || 'digital',
+        topicName: schedule.ece.topic,
+        formulasPracticed: [],
+        subTopicsCompleted: schedule.ece.subtopics,
+        numericalCount: 0,
+        confidence: 3,
+        timestamp: new Date().toISOString(),
+        xpAwarded: 0,
+      };
+
+      const baseXP = calculateElectronicsXP(topic, 0);
+      const finalXP = awardXP(baseXP);
+      topic.xpAwarded = finalXP;
+
+      log.electronicsTopic = topic;
+      log.numericalsSolved = 0;
+      saveDailyLog(log);
+      setEceCompleted(true);
+
+      markTodayActive();
+      onProblemComplete?.();
+    }
+  };
+
   if (!schedule) {
     return (
       <Card>
@@ -197,14 +275,14 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
               topic={schedule.cs.topic}
               subtopics={schedule.cs.subtopics}
               completed={csCompleted}
-              onToggle={() => setCsCompleted(!csCompleted)}
+              onToggle={() => handleCsToggle(schedule)}
             />
             <TopicCard
               label={schedule.ece.category}
               topic={schedule.ece.topic}
               subtopics={schedule.ece.subtopics}
               completed={eceCompleted}
-              onToggle={() => setEceCompleted(!eceCompleted)}
+              onToggle={() => handleEceToggle(schedule)}
             />
           </div>
         </div>
@@ -323,14 +401,14 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
             topic={schedule.cs.topic}
             subtopics={schedule.cs.subtopics}
             completed={csCompleted}
-            onToggle={() => setCsCompleted(!csCompleted)}
+            onToggle={() => handleCsToggle(schedule)}
           />
           <TopicCard
             label={schedule.ece.category}
             topic={schedule.ece.topic}
             subtopics={schedule.ece.subtopics}
             completed={eceCompleted}
-            onToggle={() => setEceCompleted(!eceCompleted)}
+            onToggle={() => handleEceToggle(schedule)}
           />
         </div>
       </div>
