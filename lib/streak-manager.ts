@@ -1,7 +1,9 @@
-import { getUserProfile, updateUserProfile, getTodayString, getDailyLog, addShameEntry } from './storage';
-import { calculateStreakDeathPenalty, decayXP } from './xp-calculator';
+import { getUserProfile, updateUserProfile, getTodayString, getDailyLog, addShameEntry, saveDailyLog } from './storage';
+import { calculateStreakDeathPenalty, decayXP, calculateMissedGoalsDecay } from './xp-calculator';
 import { ShameEntry, DailyLog } from '@/types';
 import { getScheduleByDay, getCurrentDay } from '@/data/schedule';
+
+const DECAY_PROCESSED_KEY = 'pq_decay_processed';
 
 const STREAK_FREEZE_COST = 500;
 const MAX_FREEZES_PER_WEEK = 1;
@@ -209,6 +211,9 @@ export function initializeStreakFromHistory(): void {
   const profile = getUserProfile();
   if (!profile) return;
 
+  // Apply decay for missed tasks from previous days
+  applyMissedTasksDecay();
+
   // Recalculate streak based on consecutive complete days
   let streak = 0;
   let checkDay = getCurrentDay() - 1;
@@ -233,6 +238,92 @@ export function initializeStreakFromHistory(): void {
       lastActiveDate: streak > 0 ? getDateForDayNumber(getCurrentDay() - 1) : profile.lastActiveDate,
     });
   }
+}
+
+export function applyMissedTasksDecay(): void {
+  if (typeof window === 'undefined') return;
+
+  const profile = getUserProfile();
+  if (!profile) return;
+
+  const today = getTodayString();
+  const lastProcessed = localStorage.getItem(DECAY_PROCESSED_KEY);
+
+  // Already processed today
+  if (lastProcessed === today) return;
+
+  const currentDay = getCurrentDay();
+  let totalDecay = 0;
+  const missedItems: string[] = [];
+
+  // Check all previous days for incomplete tasks
+  for (let day = 1; day < currentDay; day++) {
+    const dateStr = getDateForDayNumber(day);
+    const log = getDailyLog(dateStr);
+    const schedule = getScheduleByDay(day);
+
+    if (!schedule) continue;
+
+    // Check if this day's decay was already applied
+    if (log?.xpDecayed && log.xpDecayed > 0) continue;
+
+    const settings = {
+      dailyDSAGoal: schedule.problems.length,
+      dailyFundamentalsGoal: 1,
+      dailyElectronicsGoal: 1,
+      dailyNumericalGoal: 0,
+    };
+
+    const emptyLog: DailyLog = {
+      date: dateStr,
+      dsaProblems: [],
+      fundamentalsTopic: null,
+      electronicsTopic: null,
+      numericalsSolved: 0,
+      checkIns: [],
+      xpEarned: 0,
+      xpDecayed: 0,
+      questsCompleted: [],
+      debtPaid: [],
+      notes: '',
+    };
+
+    const dayLog = log || emptyLog;
+    const decay = calculateMissedGoalsDecay(dayLog, settings);
+
+    if (decay > 0) {
+      totalDecay += decay;
+
+      // Track what was missed
+      const completedProblems = new Set(dayLog.dsaProblems.map(p => p.name));
+      const dsaMissed = schedule.problems.length - schedule.problems.filter(p => completedProblems.has(p.name)).length;
+      if (dsaMissed > 0) missedItems.push(`Day ${day}: ${dsaMissed} DSA problems`);
+      if (!dayLog.fundamentalsTopic) missedItems.push(`Day ${day}: CS Fundamentals`);
+      if (!dayLog.electronicsTopic) missedItems.push(`Day ${day}: Electronics`);
+
+      // Mark this day's decay as applied
+      dayLog.xpDecayed = decay;
+      saveDailyLog(dayLog);
+    }
+  }
+
+  if (totalDecay > 0) {
+    decayXP(totalDecay);
+
+    // Add to shame wall if harsh mode is on
+    if (profile.settings.harshMode) {
+      const shameEntry: ShameEntry = {
+        date: today,
+        missedGoals: missedItems,
+        xpLost: totalDecay,
+        debtIncurred: 0,
+      };
+      addShameEntry(shameEntry);
+    }
+  }
+
+  // Mark today as processed
+  localStorage.setItem(DECAY_PROCESSED_KEY, today);
 }
 
 function getDateForDayNumber(dayNumber: number): string {
