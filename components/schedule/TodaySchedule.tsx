@@ -45,6 +45,10 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
   const [struggledProblems, setStruggledProblems] = useState<Set<string>>(new Set());
   const [csCompleted, setCsCompleted] = useState(false);
   const [eceCompleted, setEceCompleted] = useState(false);
+  const [csConfidence, setCsConfidence] = useState<number | null>(null);
+  const [eceConfidence, setEceConfidence] = useState<number | null>(null);
+  const [showCsConfidence, setShowCsConfidence] = useState(false);
+  const [showEceConfidence, setShowEceConfidence] = useState(false);
   const [bootcampTopic, setBootcampTopic] = useState<string | null>(null);
   const [showBootcampInput, setShowBootcampInput] = useState(false);
   const [bootcampInput, setBootcampInput] = useState('');
@@ -73,6 +77,8 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
     setStruggledProblems(struggled);
     setCsCompleted(log.fundamentalsTopic !== null);
     setEceCompleted(log.electronicsTopic !== null);
+    if (log.fundamentalsTopic) setCsConfidence(log.fundamentalsTopic.confidence);
+    if (log.electronicsTopic) setEceConfidence(log.electronicsTopic.confidence);
   }, []);
 
   const handleBootcampSync = () => {
@@ -171,88 +177,102 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
     }
   };
 
-  const handleCsToggle = (schedule: DaySchedule) => {
-    const log = getTodayLog();
-
+  const handleCsToggle = () => {
     if (csCompleted) {
+      const log = getTodayLog();
       if (log.fundamentalsTopic?.xpAwarded) {
         decayXP(log.fundamentalsTopic.xpAwarded);
       }
       log.fundamentalsTopic = null;
       saveDailyLog(log);
       setCsCompleted(false);
+      setCsConfidence(null);
     } else {
-      const categoryMap: Record<string, FundamentalsCategory> = {
-        'OS': 'os',
-        'DBMS': 'dbms',
-        'CN': 'cn',
-      };
-
-      const topic: FundamentalsTopic = {
-        id: generateId(),
-        category: categoryMap[schedule.cs.category] || 'os',
-        topicName: schedule.cs.topic,
-        subTopics: schedule.cs.subtopics,
-        confidence: 3,
-        resourcesUsed: [],
-        timestamp: new Date().toISOString(),
-        xpAwarded: 0,
-      };
-
-      const baseXP = calculateFundamentalsXP(topic);
-      const finalXP = awardXP(baseXP);
-      topic.xpAwarded = finalXP;
-
-      log.fundamentalsTopic = topic;
-      saveDailyLog(log);
-      setCsCompleted(true);
-
-      markTodayActive();
-      onProblemComplete?.();
+      setShowCsConfidence(true);
     }
   };
 
-  const handleEceToggle = (schedule: DaySchedule) => {
+  const handleCsConfirm = (confidence: number, schedule: DaySchedule) => {
     const log = getTodayLog();
+    const categoryMap: Record<string, FundamentalsCategory> = {
+      'OS': 'os',
+      'DBMS': 'dbms',
+      'CN': 'cn',
+    };
 
+    const topic: FundamentalsTopic = {
+      id: generateId(),
+      category: categoryMap[schedule.cs.category] || 'os',
+      topicName: schedule.cs.topic,
+      subTopics: schedule.cs.subtopics,
+      confidence: confidence as 1 | 2 | 3 | 4 | 5,
+      resourcesUsed: [],
+      timestamp: new Date().toISOString(),
+      xpAwarded: 0,
+    };
+
+    const baseXP = calculateFundamentalsXP(topic);
+    const finalXP = awardXP(baseXP);
+    topic.xpAwarded = finalXP;
+
+    log.fundamentalsTopic = topic;
+    saveDailyLog(log);
+    setCsCompleted(true);
+    setCsConfidence(confidence);
+    setShowCsConfidence(false);
+
+    markTodayActive();
+    onProblemComplete?.();
+  };
+
+  const handleEceToggle = () => {
     if (eceCompleted) {
+      const log = getTodayLog();
       if (log.electronicsTopic?.xpAwarded) {
         decayXP(log.electronicsTopic.xpAwarded);
       }
       log.electronicsTopic = null;
       saveDailyLog(log);
       setEceCompleted(false);
+      setEceConfidence(null);
     } else {
-      const categoryMap: Record<string, ElectronicsCategory> = {
-        'Digital': 'digital',
-        'Analog': 'analog',
-        'Embedded': 'embedded',
-      };
-
-      const topic: ElectronicsTopic = {
-        id: generateId(),
-        category: categoryMap[schedule.ece.category] || 'digital',
-        topicName: schedule.ece.topic,
-        formulasPracticed: [],
-        subTopicsCompleted: schedule.ece.subtopics,
-        numericalCount: 0,
-        confidence: 3,
-        timestamp: new Date().toISOString(),
-        xpAwarded: 0,
-      };
-
-      const baseXP = calculateElectronicsXP(topic, 0);
-      const finalXP = awardXP(baseXP);
-      topic.xpAwarded = finalXP;
-
-      log.electronicsTopic = topic;
-      log.numericalsSolved = 0;
-      saveDailyLog(log);
-      setEceCompleted(true);
-
-      markTodayActive();
-      onProblemComplete?.();
+      setShowEceConfidence(true);
     }
+  };
+
+  const handleEceConfirm = (confidence: number, schedule: DaySchedule) => {
+    const log = getTodayLog();
+    const categoryMap: Record<string, ElectronicsCategory> = {
+      'Digital': 'digital',
+      'Analog': 'analog',
+      'Embedded': 'embedded',
+    };
+
+    const topic: ElectronicsTopic = {
+      id: generateId(),
+      category: categoryMap[schedule.ece.category] || 'digital',
+      topicName: schedule.ece.topic,
+      formulasPracticed: [],
+      subTopicsCompleted: schedule.ece.subtopics,
+      numericalCount: 0,
+      confidence: confidence as 1 | 2 | 3 | 4 | 5,
+      timestamp: new Date().toISOString(),
+      xpAwarded: 0,
+    };
+
+    const baseXP = calculateElectronicsXP(topic, 0);
+    const finalXP = awardXP(baseXP);
+    topic.xpAwarded = finalXP;
+
+    log.electronicsTopic = topic;
+    log.numericalsSolved = 0;
+    saveDailyLog(log);
+    setEceCompleted(true);
+    setEceConfidence(confidence);
+    setShowEceConfidence(false);
+
+    markTodayActive();
+    onProblemComplete?.();
   };
 
   if (!schedule) {
@@ -285,14 +305,22 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
               topic={schedule.cs.topic}
               subtopics={schedule.cs.subtopics}
               completed={csCompleted}
-              onToggle={() => handleCsToggle(schedule)}
+              confidence={csConfidence}
+              onToggle={handleCsToggle}
+              showConfidencePicker={showCsConfidence}
+              onConfidenceSelect={(c) => handleCsConfirm(c, schedule)}
+              onCancel={() => setShowCsConfidence(false)}
             />
             <TopicCard
               label={schedule.ece.category}
               topic={schedule.ece.topic}
               subtopics={schedule.ece.subtopics}
               completed={eceCompleted}
-              onToggle={() => handleEceToggle(schedule)}
+              confidence={eceConfidence}
+              onToggle={handleEceToggle}
+              showConfidencePicker={showEceConfidence}
+              onConfidenceSelect={(c) => handleEceConfirm(c, schedule)}
+              onCancel={() => setShowEceConfidence(false)}
             />
           </div>
         </div>
@@ -411,14 +439,22 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
             topic={schedule.cs.topic}
             subtopics={schedule.cs.subtopics}
             completed={csCompleted}
-            onToggle={() => handleCsToggle(schedule)}
+            confidence={csConfidence}
+            onToggle={handleCsToggle}
+            showConfidencePicker={showCsConfidence}
+            onConfidenceSelect={(c) => handleCsConfirm(c, schedule)}
+            onCancel={() => setShowCsConfidence(false)}
           />
           <TopicCard
             label={schedule.ece.category}
             topic={schedule.ece.topic}
             subtopics={schedule.ece.subtopics}
             completed={eceCompleted}
-            onToggle={() => handleEceToggle(schedule)}
+            confidence={eceConfidence}
+            onToggle={handleEceToggle}
+            showConfidencePicker={showEceConfidence}
+            onConfidenceSelect={(c) => handleEceConfirm(c, schedule)}
+            onCancel={() => setShowEceConfidence(false)}
           />
         </div>
       </div>
@@ -516,14 +552,49 @@ function TopicCard({
   topic,
   subtopics,
   completed,
+  confidence,
   onToggle,
+  showConfidencePicker,
+  onConfidenceSelect,
+  onCancel,
 }: {
   label: string;
   topic: string;
   subtopics: string[];
   completed: boolean;
+  confidence?: number | null;
   onToggle: () => void;
+  showConfidencePicker?: boolean;
+  onConfidenceSelect?: (confidence: number) => void;
+  onCancel?: () => void;
 }) {
+  if (showConfidencePicker) {
+    return (
+      <div className="w-full p-3 rounded-lg border bg-zinc-900 border-zinc-700">
+        <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">{label}</p>
+        <p className="text-sm font-medium text-zinc-300 mb-3">{topic}</p>
+        <p className="text-xs text-zinc-500 mb-2">How confident are you?</p>
+        <div className="flex gap-1 mb-2">
+          {[1, 2, 3, 4, 5].map((level) => (
+            <button
+              key={level}
+              onClick={() => onConfidenceSelect?.(level)}
+              className="flex-1 py-1.5 rounded border bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-emerald-600 hover:border-emerald-500 hover:text-white transition-colors text-sm"
+            >
+              {level}
+            </button>
+          ))}
+        </div>
+        <button
+          onClick={onCancel}
+          className="w-full text-xs text-zinc-500 hover:text-zinc-300 py-1"
+        >
+          Cancel
+        </button>
+      </div>
+    );
+  }
+
   return (
     <button
       onClick={onToggle}
@@ -552,7 +623,7 @@ function TopicCard({
         {topic}
       </p>
       <p className="text-xs text-zinc-600 mt-1 truncate">
-        {subtopics.slice(0, 2).join(', ')}
+        {completed && confidence ? `Confidence: ${confidence}/5 · ` : ''}{subtopics.slice(0, 2).join(', ')}
       </p>
     </button>
   );
