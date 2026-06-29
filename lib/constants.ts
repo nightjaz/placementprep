@@ -41,8 +41,8 @@ export const XP_VALUES = {
 
 export const XP_DECAY = {
   missedDSA: 30,
-  missedFundamentals: 100,
-  missedElectronics: 100,
+  missedFundamentals: 300,
+  missedElectronics: 300,
   missedNumerical: 15,
   streakBroken: {
     days1_7: 200,
