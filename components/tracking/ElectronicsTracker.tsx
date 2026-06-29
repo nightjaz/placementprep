@@ -22,6 +22,7 @@ export function ElectronicsTracker({ onTopicAdded, currentTopic, currentNumerica
   const [numericalCount, setNumericalCount] = useState(0);
   const [confidence, setConfidence] = useState<1 | 2 | 3 | 4 | 5>(3);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showExtraForm, setShowExtraForm] = useState(false);
 
   const categoryData = ELECTRONICS_TOPICS[category];
   const selectedTopicData = categoryData.topics.find(t => t.id === topicId);
@@ -31,6 +32,9 @@ export function ElectronicsTracker({ onTopicAdded, currentTopic, currentNumerica
     if (!topicId || !selectedTopicData) return;
 
     setIsSubmitting(true);
+
+    const log = getTodayLog();
+    const isAdditional = !!currentTopic;
 
     const topic: ElectronicsTopic = {
       id: generateId(),
@@ -47,13 +51,24 @@ export function ElectronicsTracker({ onTopicAdded, currentTopic, currentNumerica
     const baseXP = calculateElectronicsXP(topic, numericalCount);
     topic.xpAwarded = baseXP;
 
-    const log = getTodayLog();
-    log.electronicsTopic = topic;
-    log.numericalsSolved = numericalCount;
+    if (isAdditional && log.electronicsTopic) {
+      // Add to existing topic's data
+      log.electronicsTopic.subTopicsCompleted = [
+        ...new Set([...(log.electronicsTopic.subTopicsCompleted || []), ...selectedSubtopics])
+      ];
+      log.numericalsSolved += numericalCount;
+      log.electronicsTopic.numericalCount = log.numericalsSolved;
+      log.electronicsTopic.xpAwarded += baseXP;
+    } else {
+      log.electronicsTopic = topic;
+      log.numericalsSolved = numericalCount;
+    }
     saveDailyLog(log);
 
     const finalXP = awardXP(baseXP);
-    topic.xpAwarded = finalXP;
+    if (!isAdditional) {
+      topic.xpAwarded = finalXP;
+    }
 
     markTodayActive();
 
@@ -62,11 +77,12 @@ export function ElectronicsTracker({ onTopicAdded, currentTopic, currentNumerica
     setNumericalCount(0);
     setConfidence(3);
     setIsSubmitting(false);
+    setShowExtraForm(false);
 
-    onTopicAdded?.(topic, numericalCount);
+    onTopicAdded?.(log.electronicsTopic!, log.numericalsSolved);
   };
 
-  if (currentTopic) {
+  if (currentTopic && !showExtraForm) {
     return (
       <Card variant="success">
         <CardHeader title="Electronics" subtitle="Today's topic completed!" />
@@ -78,6 +94,12 @@ export function ElectronicsTracker({ onTopicAdded, currentTopic, currentNumerica
           </p>
           <p className="text-emerald-400 mt-2">+{currentTopic.xpAwarded} XP earned</p>
         </div>
+        <button
+          onClick={() => setShowExtraForm(true)}
+          className="w-full mt-2 text-sm text-zinc-500 hover:text-zinc-300 py-2 border border-zinc-800 rounded-lg hover:border-zinc-700 transition-colors"
+        >
+          Log additional topic
+        </button>
       </Card>
     );
   }

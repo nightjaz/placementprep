@@ -20,6 +20,7 @@ export function FundamentalsTracker({ onTopicAdded, currentTopic }: Fundamentals
   const [selectedSubTopics, setSelectedSubTopics] = useState<string[]>([]);
   const [confidence, setConfidence] = useState<1 | 2 | 3 | 4 | 5>(3);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showExtraForm, setShowExtraForm] = useState(false);
 
   const categoryData = CS_FUNDAMENTALS[category];
   const selectedTopicData = categoryData.topics.find(t => t.id === topicId);
@@ -38,6 +39,9 @@ export function FundamentalsTracker({ onTopicAdded, currentTopic }: Fundamentals
 
     setIsSubmitting(true);
 
+    const log = getTodayLog();
+    const isAdditional = !!currentTopic;
+
     const topic: FundamentalsTopic = {
       id: generateId(),
       category,
@@ -52,12 +56,21 @@ export function FundamentalsTracker({ onTopicAdded, currentTopic }: Fundamentals
     const baseXP = calculateFundamentalsXP(topic);
     topic.xpAwarded = baseXP;
 
-    const log = getTodayLog();
-    log.fundamentalsTopic = topic;
+    if (isAdditional && log.fundamentalsTopic) {
+      // Add to existing topic's data
+      log.fundamentalsTopic.subTopics = [
+        ...new Set([...log.fundamentalsTopic.subTopics, ...selectedSubTopics])
+      ];
+      log.fundamentalsTopic.xpAwarded += baseXP;
+    } else {
+      log.fundamentalsTopic = topic;
+    }
     saveDailyLog(log);
 
     const finalXP = awardXP(baseXP);
-    topic.xpAwarded = finalXP;
+    if (!isAdditional) {
+      topic.xpAwarded = finalXP;
+    }
 
     markTodayActive();
 
@@ -65,11 +78,12 @@ export function FundamentalsTracker({ onTopicAdded, currentTopic }: Fundamentals
     setSelectedSubTopics([]);
     setConfidence(3);
     setIsSubmitting(false);
+    setShowExtraForm(false);
 
-    onTopicAdded?.(topic);
+    onTopicAdded?.(log.fundamentalsTopic!);
   };
 
-  if (currentTopic) {
+  if (currentTopic && !showExtraForm) {
     return (
       <Card variant="success">
         <CardHeader title="CS Fundamentals" subtitle="Today's topic completed!" />
@@ -80,6 +94,12 @@ export function FundamentalsTracker({ onTopicAdded, currentTopic }: Fundamentals
           </p>
           <p className="text-emerald-400 mt-2">+{currentTopic.xpAwarded} XP earned</p>
         </div>
+        <button
+          onClick={() => setShowExtraForm(true)}
+          className="w-full mt-2 text-sm text-zinc-500 hover:text-zinc-300 py-2 border border-zinc-800 rounded-lg hover:border-zinc-700 transition-colors"
+        >
+          Log additional topic
+        </button>
       </Card>
     );
   }
