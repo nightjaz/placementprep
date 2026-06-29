@@ -56,7 +56,7 @@ export const SCHEDULE: DaySchedule[] = [
     phase: 'foundation',
     problemCount: 6,
     problems: [
-      { name: 'Majority Element', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/majority-element/' },
+      { name: 'Best Time to Buy and Sell Stock', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/best-time-to-buy-and-sell-stock/' },
       { name: 'Single Number', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/single-number/' },
       { name: 'Subarray Sum Equals K', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/subarray-sum-equals-k/' },
       { name: 'Longest Consecutive Sequence', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/longest-consecutive-sequence/' },
