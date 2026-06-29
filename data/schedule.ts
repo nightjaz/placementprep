@@ -56,7 +56,7 @@ export const SCHEDULE: DaySchedule[] = [
     phase: 'foundation',
     problemCount: 6,
     problems: [
-      { name: 'Best Time to Buy and Sell Stock', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/best-time-to-buy-and-sell-stock/' },
+      { name: 'Majority Element', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/majority-element/' },
       { name: 'Single Number', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/single-number/' },
       { name: 'Subarray Sum Equals K', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/subarray-sum-equals-k/' },
       { name: 'Longest Consecutive Sequence', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/longest-consecutive-sequence/' },
@@ -340,7 +340,7 @@ export const SCHEDULE: DaySchedule[] = [
       { name: 'Design Add and Search Words', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/design-add-and-search-words-data-structure/' },
       { name: 'Word Search II', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/word-search-ii/' },
       { name: 'Replace Words', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/replace-words/' },
-      { name: 'Maximum XOR of Two Numbers', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/maximum-xor-of-two-numbers-in-an-array/' },
+      { name: 'Search Suggestions System', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/search-suggestions-system/' },
       { name: 'Longest Word in Dictionary', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/longest-word-in-dictionary/' },
       { name: 'Palindrome Pairs', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/palindrome-pairs/' },
     ],
