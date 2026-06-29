@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { DaySchedule, ScheduledProblem, getCurrentDay, getScheduleByDay } from '@/data/schedule';
 import { getTodayLog, saveDailyLog, generateId } from '@/lib/storage';
-import { calculateDSAXP, calculateFundamentalsXP, calculateElectronicsXP, awardXP } from '@/lib/xp-calculator';
+import { calculateDSAXP, calculateFundamentalsXP, calculateElectronicsXP, awardXP, decayXP } from '@/lib/xp-calculator';
 import { markTodayActive } from '@/lib/streak-manager';
 import { adjustScheduleForBootcamp, getAvailableTopics } from '@/lib/bootcamp-sync';
 import { DSAProblem, FundamentalsTopic, ElectronicsTopic, FundamentalsCategory, ElectronicsCategory } from '@/types';
@@ -107,6 +107,10 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
     const isCompleted = completedProblems.has(problem.name);
 
     if (isCompleted) {
+      const existingProblem = log.dsaProblems.find(p => p.name === problem.name);
+      if (existingProblem?.xpAwarded) {
+        decayXP(existingProblem.xpAwarded);
+      }
       log.dsaProblems = log.dsaProblems.filter(p => p.name !== problem.name);
       const newCompleted = new Set(completedProblems);
       newCompleted.delete(problem.name);
@@ -171,6 +175,9 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
     const log = getTodayLog();
 
     if (csCompleted) {
+      if (log.fundamentalsTopic?.xpAwarded) {
+        decayXP(log.fundamentalsTopic.xpAwarded);
+      }
       log.fundamentalsTopic = null;
       saveDailyLog(log);
       setCsCompleted(false);
@@ -209,6 +216,9 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
     const log = getTodayLog();
 
     if (eceCompleted) {
+      if (log.electronicsTopic?.xpAwarded) {
+        decayXP(log.electronicsTopic.xpAwarded);
+      }
       log.electronicsTopic = null;
       saveDailyLog(log);
       setEceCompleted(false);
