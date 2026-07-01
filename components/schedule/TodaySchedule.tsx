@@ -49,6 +49,7 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
   const [eceConfidence, setEceConfidence] = useState<number | null>(null);
   const [showCsConfidence, setShowCsConfidence] = useState(false);
   const [showEceConfidence, setShowEceConfidence] = useState(false);
+  const [completedEceSubtopics, setCompletedEceSubtopics] = useState<Set<string>>(new Set());
   const [bootcampTopic, setBootcampTopic] = useState<string | null>(null);
   const [showBootcampInput, setShowBootcampInput] = useState(false);
   const [bootcampInput, setBootcampInput] = useState('');
@@ -78,7 +79,10 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
     setCsCompleted(log.fundamentalsTopic !== null);
     setEceCompleted(log.electronicsTopic !== null);
     if (log.fundamentalsTopic) setCsConfidence(log.fundamentalsTopic.confidence);
-    if (log.electronicsTopic) setEceConfidence(log.electronicsTopic.confidence);
+    if (log.electronicsTopic) {
+      setEceConfidence(log.electronicsTopic.confidence);
+      setCompletedEceSubtopics(new Set(log.electronicsTopic.subTopicsCompleted || []));
+    }
   }, []);
 
   const handleBootcampSync = () => {
@@ -238,6 +242,59 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
     } else {
       setShowEceConfidence(true);
     }
+  };
+
+  const handleEceSubtopicToggle = (subtopic: string, schedule: DaySchedule) => {
+    const log = getTodayLog();
+    const newCompleted = new Set(completedEceSubtopics);
+
+    if (newCompleted.has(subtopic)) {
+      newCompleted.delete(subtopic);
+    } else {
+      newCompleted.add(subtopic);
+    }
+    setCompletedEceSubtopics(newCompleted);
+
+    const allSubtopics = schedule.ece.subtopics;
+    const allCompleted = allSubtopics.every(s => newCompleted.has(s));
+
+    if (log.electronicsTopic) {
+      log.electronicsTopic.subTopicsCompleted = Array.from(newCompleted);
+      saveDailyLog(log);
+    } else if (newCompleted.size > 0) {
+      const categoryMap: Record<string, ElectronicsCategory> = {
+        'Digital': 'digital',
+        'Analog': 'analog',
+        'Embedded': 'embedded',
+      };
+
+      const topic: ElectronicsTopic = {
+        id: generateId(),
+        category: categoryMap[schedule.ece.category] || 'embedded',
+        topicName: schedule.ece.topic,
+        formulasPracticed: [],
+        subTopicsCompleted: Array.from(newCompleted),
+        numericalCount: 0,
+        confidence: 3,
+        timestamp: new Date().toISOString(),
+        xpAwarded: 0,
+      };
+
+      const xpPerSubtopic = 25;
+      const baseXP = xpPerSubtopic;
+      const finalXP = awardXP(baseXP);
+      topic.xpAwarded = finalXP;
+
+      log.electronicsTopic = topic;
+      saveDailyLog(log);
+
+      if (allCompleted) {
+        setEceCompleted(true);
+        markTodayActive();
+      }
+    }
+
+    onProblemComplete?.();
   };
 
   const handleEceConfirm = (confidence: number, schedule: DaySchedule) => {
@@ -433,7 +490,7 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
           ))}
         </div>
 
-        <div className="grid grid-cols-2 gap-3 pt-4 border-t border-zinc-800">
+        <div className="pt-4 border-t border-zinc-800 space-y-4">
           <TopicCard
             label={schedule.cs.category}
             topic={schedule.cs.topic}
@@ -445,17 +502,48 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
             onConfidenceSelect={(c) => handleCsConfirm(c, schedule)}
             onCancel={() => setShowCsConfidence(false)}
           />
-          <TopicCard
-            label={schedule.ece.category}
-            topic={schedule.ece.topic}
-            subtopics={schedule.ece.subtopics}
-            completed={eceCompleted}
-            confidence={eceConfidence}
-            onToggle={handleEceToggle}
-            showConfidencePicker={showEceConfidence}
-            onConfidenceSelect={(c) => handleEceConfirm(c, schedule)}
-            onCancel={() => setShowEceConfidence(false)}
-          />
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-xs text-zinc-500 uppercase tracking-wider">{schedule.ece.category}</span>
+                <p className="text-sm font-medium text-zinc-300">{schedule.ece.topic}</p>
+              </div>
+              <span className={`text-sm font-medium ${completedEceSubtopics.size === schedule.ece.subtopics.length ? 'text-emerald-400' : 'text-zinc-400'}`}>
+                {completedEceSubtopics.size}/{schedule.ece.subtopics.length}
+              </span>
+            </div>
+            <div className="space-y-1">
+              {schedule.ece.subtopics.map((subtopic, index) => (
+                <SubtopicRow
+                  key={subtopic}
+                  index={index + 1}
+                  name={subtopic}
+                  completed={completedEceSubtopics.has(subtopic)}
+                  onToggle={() => handleEceSubtopicToggle(subtopic, schedule)}
+                />
+              ))}
+            </div>
+            {completedEceSubtopics.size === schedule.ece.subtopics.length && !eceConfidence && (
+              <div className="bg-zinc-900 border border-zinc-700 rounded-lg p-3 mt-2">
+                <p className="text-xs text-zinc-500 mb-2">How confident are you overall?</p>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((level) => (
+                    <button
+                      key={level}
+                      onClick={() => handleEceConfirm(level, schedule)}
+                      className="flex-1 py-1.5 rounded border bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-emerald-600 hover:border-emerald-500 hover:text-white transition-colors text-sm"
+                    >
+                      {level}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {eceConfidence && (
+              <p className="text-xs text-emerald-400">Confidence: {eceConfidence}/5</p>
+            )}
+          </div>
         </div>
       </div>
     </Card>
@@ -543,6 +631,47 @@ function ProblemRow({
           {struggled ? 'struggled' : 'mark'}
         </button>
       )}
+    </div>
+  );
+}
+
+function SubtopicRow({
+  index,
+  name,
+  completed,
+  onToggle,
+}: {
+  index: number;
+  name: string;
+  completed: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div className={`
+      flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
+      ${completed ? 'bg-zinc-900/50' : 'hover:bg-zinc-900/50'}
+    `}>
+      <button
+        onClick={onToggle}
+        className={`
+          w-5 h-5 rounded border flex items-center justify-center transition-all flex-shrink-0
+          ${completed
+            ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-400'
+            : 'border-zinc-700 hover:border-zinc-500'}
+        `}
+      >
+        {completed && (
+          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        )}
+      </button>
+
+      <span className="text-zinc-600 text-xs w-5 flex-shrink-0">{index}</span>
+
+      <span className={`text-sm flex-1 ${completed ? 'text-zinc-500 line-through' : 'text-zinc-300'}`}>
+        {name}
+      </span>
     </div>
   );
 }
