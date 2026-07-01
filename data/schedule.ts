@@ -595,12 +595,10 @@ export const SCHEDULE: DaySchedule[] = [
     date: getDateForDay(34),
     topic: 'Revision: Backtracking, Greedy, DP',
     phase: 'revision',
-    problemCount: 4,
+    problemCount: 2,
     problems: [
       { name: 'Reorder List', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/reorder-list/' },
       { name: 'Evaluate Reverse Polish Notation', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/evaluate-reverse-polish-notation/' },
-      { name: 'Koko Eating Bananas', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/koko-eating-bananas/' },
-      { name: 'Search a 2D Matrix II', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/search-a-2d-matrix-ii/' },
     ],
     cs: { category: 'OS', topic: 'Mixed Most-Asked', subtopics: ['Top interview topics'] },
     ece: { category: 'Digital', topic: 'Numericals Practice', subtopics: ['All topics'] },
