@@ -24,8 +24,14 @@ export function isDayComplete(log: DailyLog | null, dayNumber: number): boolean 
   const fundamentalsDone = log.fundamentalsTopic !== null ? 1 : 0;
 
   // Check electronics - each subtopic counts as a task
+  // Backward compat: if electronicsTopic exists but subTopicsCompleted is empty/missing,
+  // count as all subtopics done (old single-click completion)
   const eceSubtopicsTotal = schedule.ece.subtopics.length;
-  const eceSubtopicsCompleted = log.electronicsTopic?.subTopicsCompleted?.length || 0;
+  let eceSubtopicsCompleted = 0;
+  if (log.electronicsTopic) {
+    const logged = log.electronicsTopic.subTopicsCompleted?.length || 0;
+    eceSubtopicsCompleted = logged > 0 ? logged : eceSubtopicsTotal;
+  }
 
   // Total tasks = DSA problems + fundamentals (1) + ECE subtopics
   const totalTasks = schedule.problems.length + 1 + eceSubtopicsTotal;
@@ -60,8 +66,13 @@ export function getTodayCompletionStatus(): {
   const fundamentalsDone = log?.fundamentalsTopic !== null;
 
   // ECE subtopics count individually
+  // Backward compat: if electronicsTopic exists but subTopicsCompleted is empty, count as all done
   const eceTotal = schedule.ece.subtopics.length;
-  const eceDone = log?.electronicsTopic?.subTopicsCompleted?.length || 0;
+  let eceDone = 0;
+  if (log?.electronicsTopic) {
+    const logged = log.electronicsTopic.subTopicsCompleted?.length || 0;
+    eceDone = logged > 0 ? logged : eceTotal;
+  }
   const electronicsDone = eceDone === eceTotal;
 
   const allComplete = dsaDone === schedule.problems.length && fundamentalsDone && electronicsDone;
