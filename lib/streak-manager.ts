@@ -20,13 +20,16 @@ export function isDayComplete(log: DailyLog | null, dayNumber: number): boolean 
   const completedProblems = new Set(log.dsaProblems.map(p => p.name));
   const dsaCompleted = schedule.problems.filter(p => completedProblems.has(p.name)).length;
 
-  // Check fundamentals and electronics
+  // Check fundamentals (1 task)
   const fundamentalsDone = log.fundamentalsTopic !== null ? 1 : 0;
-  const electronicsDone = log.electronicsTopic !== null ? 1 : 0;
 
-  // Total tasks = DSA problems + fundamentals (1) + electronics (1)
-  const totalTasks = schedule.problems.length + 2;
-  const completedTasks = dsaCompleted + fundamentalsDone + electronicsDone;
+  // Check electronics - each subtopic counts as a task
+  const eceSubtopicsTotal = schedule.ece.subtopics.length;
+  const eceSubtopicsCompleted = log.electronicsTopic?.subTopicsCompleted?.length || 0;
+
+  // Total tasks = DSA problems + fundamentals (1) + ECE subtopics
+  const totalTasks = schedule.problems.length + 1 + eceSubtopicsTotal;
+  const completedTasks = dsaCompleted + fundamentalsDone + eceSubtopicsCompleted;
 
   // Streak continues if at least 70% of tasks are done
   return completedTasks / totalTasks >= STREAK_COMPLETION_THRESHOLD;
@@ -37,6 +40,8 @@ export function getTodayCompletionStatus(): {
   dsaTotal: number;
   fundamentalsDone: boolean;
   electronicsDone: boolean;
+  eceDone: number;
+  eceTotal: number;
   allComplete: boolean;
   completionPercent: number;
   streakEligible: boolean;
@@ -46,19 +51,24 @@ export function getTodayCompletionStatus(): {
   const log = getDailyLog(getTodayString());
 
   if (!schedule) {
-    return { dsaDone: 0, dsaTotal: 0, fundamentalsDone: false, electronicsDone: false, allComplete: false, completionPercent: 0, streakEligible: false };
+    return { dsaDone: 0, dsaTotal: 0, fundamentalsDone: false, electronicsDone: false, eceDone: 0, eceTotal: 0, allComplete: false, completionPercent: 0, streakEligible: false };
   }
 
   const completedProblems = new Set(log?.dsaProblems.map(p => p.name) || []);
   const dsaDone = schedule.problems.filter(p => completedProblems.has(p.name)).length;
 
   const fundamentalsDone = log?.fundamentalsTopic !== null;
-  const electronicsDone = log?.electronicsTopic !== null;
+
+  // ECE subtopics count individually
+  const eceTotal = schedule.ece.subtopics.length;
+  const eceDone = log?.electronicsTopic?.subTopicsCompleted?.length || 0;
+  const electronicsDone = eceDone === eceTotal;
+
   const allComplete = dsaDone === schedule.problems.length && fundamentalsDone && electronicsDone;
 
-  // Calculate completion percentage
-  const totalTasks = schedule.problems.length + 2;
-  const completedTasks = dsaDone + (fundamentalsDone ? 1 : 0) + (electronicsDone ? 1 : 0);
+  // Calculate completion percentage - each ECE subtopic is a task
+  const totalTasks = schedule.problems.length + 1 + eceTotal;
+  const completedTasks = dsaDone + (fundamentalsDone ? 1 : 0) + eceDone;
   const completionPercent = Math.round((completedTasks / totalTasks) * 100);
   const streakEligible = completedTasks / totalTasks >= STREAK_COMPLETION_THRESHOLD;
 
@@ -67,6 +77,8 @@ export function getTodayCompletionStatus(): {
     dsaTotal: schedule.problems.length,
     fundamentalsDone,
     electronicsDone,
+    eceDone,
+    eceTotal,
     allComplete,
     completionPercent,
     streakEligible,
