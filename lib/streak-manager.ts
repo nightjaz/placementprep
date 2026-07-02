@@ -234,6 +234,19 @@ export function initializeStreakFromHistory(): void {
   const profile = getUserProfile();
   if (!profile) return;
 
+  // One-time fix: restore streak that was incorrectly reset on July 2
+  const today = getTodayString();
+  const fixApplied = typeof window !== 'undefined' && localStorage.getItem('pq_streak_fix_jul2');
+  if (!fixApplied && today === '2026-07-02' && profile.currentStreak === 0) {
+    const currentDay = getCurrentDay();
+    updateUserProfile({
+      currentStreak: currentDay - 1,
+      longestStreak: Math.max(profile.longestStreak, currentDay - 1),
+    });
+    localStorage.setItem('pq_streak_fix_jul2', 'true');
+    return;
+  }
+
   // Apply decay for missed tasks from previous days
   applyMissedTasksDecay();
 
