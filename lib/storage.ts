@@ -37,7 +37,11 @@ export function getEmptyDebt(): DebtRecord {
 }
 
 export function getUserProfile(): UserProfile | null {
-  return getItem<UserProfile>(STORAGE_KEYS.USER_PROFILE);
+  const profile = getItem<UserProfile>(STORAGE_KEYS.USER_PROFILE);
+  if (profile && !profile.settings.enabledEceCategories) {
+    profile.settings.enabledEceCategories = DEFAULT_SETTINGS.enabledEceCategories;
+  }
+  return profile;
 }
 
 export function createUserProfile(placementDate: string): UserProfile {

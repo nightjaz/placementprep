@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ElectronicsTopic, ElectronicsCategory } from '@/types';
 import { Card, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ELECTRONICS_TOPICS } from '@/lib/constants';
-import { generateId, getTodayLog, saveDailyLog } from '@/lib/storage';
+import { generateId, getTodayLog, saveDailyLog, getUserProfile } from '@/lib/storage';
 import { calculateElectronicsXP, awardXP } from '@/lib/xp-calculator';
 import { markTodayActive } from '@/lib/streak-manager';
 
@@ -16,6 +16,7 @@ interface ElectronicsTrackerProps {
 }
 
 export function ElectronicsTracker({ onTopicAdded, currentTopic, currentNumericals = 0 }: ElectronicsTrackerProps) {
+  const [enabledCategories, setEnabledCategories] = useState<ElectronicsCategory[]>(['analog', 'digital', 'embedded']);
   const [category, setCategory] = useState<ElectronicsCategory>('analog');
   const [topicId, setTopicId] = useState('');
   const [selectedSubtopics, setSelectedSubtopics] = useState<string[]>([]);
@@ -23,6 +24,16 @@ export function ElectronicsTracker({ onTopicAdded, currentTopic, currentNumerica
   const [confidence, setConfidence] = useState<1 | 2 | 3 | 4 | 5>(3);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showExtraForm, setShowExtraForm] = useState(false);
+
+  useEffect(() => {
+    const profile = getUserProfile();
+    if (profile?.settings.enabledEceCategories) {
+      setEnabledCategories(profile.settings.enabledEceCategories);
+      if (profile.settings.enabledEceCategories.length > 0 && !profile.settings.enabledEceCategories.includes(category)) {
+        setCategory(profile.settings.enabledEceCategories[0]);
+      }
+    }
+  }, []);
 
   const categoryData = ELECTRONICS_TOPICS[category];
   const selectedTopicData = categoryData.topics.find(t => t.id === topicId);
@@ -123,7 +134,9 @@ export function ElectronicsTracker({ onTopicAdded, currentTopic, currentNumerica
             }}
             className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 focus:outline-none focus:border-emerald-500"
           >
-            {Object.entries(ELECTRONICS_TOPICS).map(([key, value]) => (
+            {Object.entries(ELECTRONICS_TOPICS)
+              .filter(([key]) => enabledCategories.includes(key as ElectronicsCategory))
+              .map(([key, value]) => (
               <option key={key} value={key}>
                 {value.name}
               </option>

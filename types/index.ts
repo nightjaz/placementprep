@@ -30,6 +30,7 @@ export interface UserSettings {
   checkInTimes: string[];
   leetcodeUsername?: string;
   harshMode: boolean;
+  enabledEceCategories?: ElectronicsCategory[];
 }
 
 export interface DailyLog {
