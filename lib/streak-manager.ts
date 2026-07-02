@@ -234,16 +234,24 @@ export function initializeStreakFromHistory(): void {
   const profile = getUserProfile();
   if (!profile) return;
 
-  // One-time fix: restore streak that was incorrectly reset on July 2
+  // One-time fix: complete Day 7 ECE subtopics and restore streak
   const today = getTodayString();
-  const fixApplied = typeof window !== 'undefined' && localStorage.getItem('pq_streak_fix_jul2');
-  if (!fixApplied && today === '2026-07-02' && profile.currentStreak === 0) {
-    const currentDay = getCurrentDay();
-    updateUserProfile({
-      currentStreak: currentDay - 1,
-      longestStreak: Math.max(profile.longestStreak, currentDay - 1),
-    });
-    localStorage.setItem('pq_streak_fix_jul2', 'true');
+  const fix2Applied = typeof window !== 'undefined' && localStorage.getItem('pq_streak_fix_jul3');
+  if (!fix2Applied && typeof window !== 'undefined') {
+    const day7Date = '2026-07-02';
+    const day7Log = getDailyLog(day7Date);
+    if (day7Log && day7Log.electronicsTopic) {
+      const schedule = getScheduleByDay(7);
+      if (schedule) {
+        day7Log.electronicsTopic.subTopicsCompleted = schedule.ece.subtopics;
+        saveDailyLog(day7Log);
+        updateUserProfile({
+          currentStreak: 7,
+          longestStreak: Math.max(profile.longestStreak, 7),
+        });
+      }
+    }
+    localStorage.setItem('pq_streak_fix_jul3', 'true');
     return;
   }
 
