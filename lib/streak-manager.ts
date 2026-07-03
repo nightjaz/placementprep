@@ -234,27 +234,12 @@ export function initializeStreakFromHistory(): void {
   const profile = getUserProfile();
   if (!profile) return;
 
-  // One-time fix: Set streak to days completed (currentDay - 1)
-  // This runs once to fix streak that was incorrectly reset
-  const fixApplied = typeof window !== 'undefined' && localStorage.getItem('pq_streak_fix_v2');
-  if (!fixApplied && typeof window !== 'undefined' && profile.currentStreak === 0) {
-    const currentDay = getCurrentDay();
-    const correctStreak = currentDay - 1; // Days 1 through yesterday are complete
-    updateUserProfile({
-      currentStreak: correctStreak,
-      longestStreak: Math.max(profile.longestStreak, correctStreak),
-    });
-    localStorage.setItem('pq_streak_fix_v2', 'true');
-    return;
-  }
-
   // Apply decay for missed tasks from previous days
   applyMissedTasksDecay();
 
-  // Don't recalculate and reset an existing streak - trust the stored value
-  if (profile.currentStreak > 0) {
-    return;
-  }
+  // Trust the stored streak value - don't recalculate from scratch
+  // Streak is managed by markTodayActive() when user completes tasks
+}
 
   // Recalculate streak based on consecutive complete days
   let streak = 0;
