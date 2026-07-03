@@ -234,24 +234,17 @@ export function initializeStreakFromHistory(): void {
   const profile = getUserProfile();
   if (!profile) return;
 
-  // One-time fix: complete Day 7 ECE subtopics and restore streak
-  const today = getTodayString();
-  const fix2Applied = typeof window !== 'undefined' && localStorage.getItem('pq_streak_fix_jul3');
-  if (!fix2Applied && typeof window !== 'undefined') {
-    const day7Date = '2026-07-02';
-    const day7Log = getDailyLog(day7Date);
-    if (day7Log && day7Log.electronicsTopic) {
-      const schedule = getScheduleByDay(7);
-      if (schedule) {
-        day7Log.electronicsTopic.subTopicsCompleted = schedule.ece.subtopics;
-        saveDailyLog(day7Log);
-        updateUserProfile({
-          currentStreak: 7,
-          longestStreak: Math.max(profile.longestStreak, 7),
-        });
-      }
-    }
-    localStorage.setItem('pq_streak_fix_jul3', 'true');
+  // One-time fix: Set streak to days completed (currentDay - 1)
+  // This runs once to fix streak that was incorrectly reset
+  const fixApplied = typeof window !== 'undefined' && localStorage.getItem('pq_streak_fix_v2');
+  if (!fixApplied && typeof window !== 'undefined' && profile.currentStreak === 0) {
+    const currentDay = getCurrentDay();
+    const correctStreak = currentDay - 1; // Days 1 through yesterday are complete
+    updateUserProfile({
+      currentStreak: correctStreak,
+      longestStreak: Math.max(profile.longestStreak, correctStreak),
+    });
+    localStorage.setItem('pq_streak_fix_v2', 'true');
     return;
   }
 
@@ -259,7 +252,6 @@ export function initializeStreakFromHistory(): void {
   applyMissedTasksDecay();
 
   // Don't recalculate and reset an existing streak - trust the stored value
-  // Only recalculate if streak is 0 and we want to check if it should be higher
   if (profile.currentStreak > 0) {
     return;
   }
