@@ -23,19 +23,13 @@ export function isDayComplete(log: DailyLog | null, dayNumber: number): boolean 
   // Check fundamentals (1 task)
   const fundamentalsDone = log.fundamentalsTopic !== null ? 1 : 0;
 
-  // Check electronics - each subtopic counts as a task
-  // Backward compat: if electronicsTopic exists but subTopicsCompleted is empty/missing,
-  // count as all subtopics done (old single-click completion)
-  const eceSubtopicsTotal = schedule.ece.subtopics.length;
-  let eceSubtopicsCompleted = 0;
-  if (log.electronicsTopic) {
-    const logged = log.electronicsTopic.subTopicsCompleted?.length || 0;
-    eceSubtopicsCompleted = logged > 0 ? logged : eceSubtopicsTotal;
-  }
+  // Check electronics - count as 1 task if electronicsTopic exists (completed)
+  // This simplifies streak calculation - ECE is just 1 task for streak purposes
+  const eceDone = log.electronicsTopic !== null ? 1 : 0;
 
-  // Total tasks = DSA problems + fundamentals (1) + ECE subtopics
-  const totalTasks = schedule.problems.length + 1 + eceSubtopicsTotal;
-  const completedTasks = dsaCompleted + fundamentalsDone + eceSubtopicsCompleted;
+  // Total tasks = DSA problems + fundamentals (1) + ECE (1)
+  const totalTasks = schedule.problems.length + 1 + 1;
+  const completedTasks = dsaCompleted + fundamentalsDone + eceDone;
 
   // Streak continues if at least 70% of tasks are done
   return completedTasks / totalTasks >= STREAK_COMPLETION_THRESHOLD;
@@ -65,21 +59,20 @@ export function getTodayCompletionStatus(): {
 
   const fundamentalsDone = log?.fundamentalsTopic !== null;
 
-  // ECE subtopics count individually
-  // Backward compat: if electronicsTopic exists but subTopicsCompleted is empty, count as all done
+  // ECE subtopics for display (how many individual subtopics completed)
   const eceTotal = schedule.ece.subtopics.length;
   let eceDone = 0;
   if (log?.electronicsTopic) {
     const logged = log.electronicsTopic.subTopicsCompleted?.length || 0;
     eceDone = logged > 0 ? logged : eceTotal;
   }
-  const electronicsDone = eceDone === eceTotal;
+  const electronicsDone = log?.electronicsTopic !== null;
 
   const allComplete = dsaDone === schedule.problems.length && fundamentalsDone && electronicsDone;
 
-  // Calculate completion percentage - each ECE subtopic is a task
-  const totalTasks = schedule.problems.length + 1 + eceTotal;
-  const completedTasks = dsaDone + (fundamentalsDone ? 1 : 0) + eceDone;
+  // For streak: ECE counts as 1 task (not per subtopic)
+  const totalTasks = schedule.problems.length + 1 + 1;
+  const completedTasks = dsaDone + (fundamentalsDone ? 1 : 0) + (electronicsDone ? 1 : 0);
   const completionPercent = Math.round((completedTasks / totalTasks) * 100);
   const streakEligible = completedTasks / totalTasks >= STREAK_COMPLETION_THRESHOLD;
 
