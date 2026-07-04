@@ -237,19 +237,30 @@ export function initializeStreakFromHistory(): void {
   // Apply decay for missed tasks from previous days
   applyMissedTasksDecay();
 
-  // Check if yesterday was complete but streak wasn't updated
+  // Recalculate streak from consecutive complete days ending yesterday
   const currentDay = getCurrentDay();
-  if (currentDay > 1) {
-    const yesterdayDate = getDateForDayNumber(currentDay - 1);
-    const yesterdayLog = getDailyLog(yesterdayDate);
+  let streak = 0;
+  let checkDay = currentDay - 1;
 
-    if (isDayComplete(yesterdayLog, currentDay - 1) && profile.lastActiveDate !== yesterdayDate) {
-      updateUserProfile({
-        currentStreak: profile.currentStreak + 1,
-        longestStreak: Math.max(profile.longestStreak, profile.currentStreak + 1),
-        lastActiveDate: yesterdayDate,
-      });
+  while (checkDay >= 1) {
+    const checkDate = getDateForDayNumber(checkDay);
+    const log = getDailyLog(checkDate);
+
+    if (isDayComplete(log, checkDay)) {
+      streak++;
+      checkDay--;
+    } else {
+      break;
     }
+  }
+
+  // Update if calculated streak differs from stored
+  if (streak !== profile.currentStreak) {
+    updateUserProfile({
+      currentStreak: streak,
+      longestStreak: Math.max(profile.longestStreak, streak),
+      lastActiveDate: streak > 0 ? getDateForDayNumber(currentDay - 1) : profile.lastActiveDate,
+    });
   }
 }
 
