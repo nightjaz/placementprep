@@ -160,43 +160,38 @@ export const SCHEDULE: DaySchedule[] = [
   {
     day: 9,
     date: getDateForDay(9),
-    topic: 'Interrupts & RTOS',
+    topic: 'Embedded C + Memory + Linker',
     phase: 'foundation',
     problemCount: 1,
     problems: [
       { name: 'Maximum Depth of Binary Tree', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/maximum-depth-of-binary-tree/' },
     ],
     cs: { category: 'CN', topic: 'Network Layer', subtopics: ['IP Addressing', 'Subnetting', 'Routing'] },
-    ece: { category: 'Embedded', topic: 'Interrupts & RTOS', subtopics: ['ISR basics (no params, no return)', 'Interrupt vs polling', 'Interrupt latency', 'Semaphore vs Mutex', 'Priority inversion & inheritance', 'Preemptive vs cooperative', 'Context switch mechanism'] },
+    ece: { category: 'Embedded', topic: 'Embedded C + Memory + Linker', subtopics: ['.text/.rodata/.data/.bss sections', 'Stack vs Heap', 'Flash vs RAM vs EEPROM', 'malloc/free and heap risks', 'Memory leak, dangling pointer, double free', 'Why dynamic alloc avoided in embedded', 'struct vs union, endianness', 'memcpy vs memmove', 'Count set bits, NAND bitwise, 15*n trick', 'Circular buffer concept'] },
   },
   {
     day: 10,
     date: getDateForDay(10),
-    topic: 'Communication Protocols',
+    topic: 'Interrupts + RTOS + Real-time',
     phase: 'foundation',
     problemCount: 1,
     problems: [
       { name: 'Subtree of Another Tree', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/subtree-of-another-tree/' },
     ],
     cs: { category: 'OS', topic: 'Deadlocks', subtopics: ['Conditions', 'Prevention', 'Avoidance'] },
-    ece: { category: 'Embedded', topic: 'Communication Protocols', subtopics: ['UART basics', 'SPI (MOSI/MISO/SCLK/SS)', 'I2C (addressing, ACK/NACK)', 'Protocol comparison table', 'CAN bus & arbitration', 'DMA transfers', 'Endianness'] },
+    ece: { category: 'Embedded', topic: 'Interrupts + RTOS', subtopics: ['ISR concept, interrupt vs polling', 'Interrupt vs exception', 'Interrupt latency, why ISR short', 'Nested/prioritized interrupts', 'Shared variables ISR<->main', 'Task/thread, scheduler, context switch', 'Preemptive vs cooperative scheduling', 'SysTick and PendSV', 'Mutex vs binary semaphore', 'Priority inversion & inheritance', 'Deadlock causes and fixes'] },
   },
   {
     day: 11,
     date: getDateForDay(11),
-    topic: 'Trees (Advanced)',
-    phase: 'intermediate',
-    problemCount: 6,
+    topic: 'Protocols + Peripherals + Debugging',
+    phase: 'foundation',
+    problemCount: 1,
     problems: [
       { name: 'Count Good Nodes', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/count-good-nodes-in-binary-tree/' },
-      { name: 'Construct Binary Tree from Preorder and Inorder', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/' },
-      { name: 'Kth Smallest Element in BST', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/kth-smallest-element-in-a-bst/' },
-      { name: 'Binary Tree Zigzag Level Order', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/binary-tree-zigzag-level-order-traversal/' },
-      { name: 'Serialize and Deserialize Binary Tree', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/serialize-and-deserialize-binary-tree/' },
-      { name: 'Binary Tree Maximum Path Sum', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/binary-tree-maximum-path-sum/' },
     ],
     cs: { category: 'DBMS', topic: 'Indexing', subtopics: ['B+ Trees', 'Hashing', 'Query Optimization'] },
-    ece: { category: 'Analog', topic: 'Op-Amps', subtopics: ['Configurations', 'Filters', 'Oscillators'] },
+    ece: { category: 'Embedded', topic: 'Protocols + Peripherals + Debug', subtopics: ['UART vs SPI vs I2C comparison', 'CPOL/CPHA, I2C addressing, clock stretch', 'CAN arbitration basics', 'DMA-driven transfers', 'GPIO modes, pull-up/down, open-drain', 'Timers, prescaler, PWM', 'Watchdog timer', 'Hard fault debugging', 'JTAG/SWD basics', 'Logic analyzer vs oscilloscope', 'Linker map, .bss size issues', 'FSM, latch vs flip-flop basics'] },
   },
   {
     day: 12,
@@ -625,12 +620,15 @@ export function getTodaySchedule(): DaySchedule | null {
 }
 
 export function getCurrentDay(): number {
-  const today = new Date();
+  const now = new Date();
   const [startYear, startMonth, startDay] = START_DATE.split('-').map(Number);
-  const start = new Date(startYear, startMonth - 1, startDay);
 
-  // Use local date components to avoid timezone issues
-  const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  // Day starts at 6 AM IST (00:30 UTC)
+  // Subtract 6 hours to shift the day boundary
+  const adjustedNow = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+
+  const start = new Date(startYear, startMonth - 1, startDay);
+  const todayMidnight = new Date(adjustedNow.getFullYear(), adjustedNow.getMonth(), adjustedNow.getDate());
   const startMidnight = new Date(start.getFullYear(), start.getMonth(), start.getDate());
 
   const diffTime = todayMidnight.getTime() - startMidnight.getTime();

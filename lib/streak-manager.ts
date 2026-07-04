@@ -253,32 +253,6 @@ export function initializeStreakFromHistory(): void {
   }
 }
 
-  // Recalculate streak based on consecutive complete days
-  let streak = 0;
-  let checkDay = getCurrentDay() - 1;
-
-  while (checkDay >= 1) {
-    const checkDate = getDateForDayNumber(checkDay);
-    const log = getDailyLog(checkDate);
-
-    if (isDayComplete(log, checkDay)) {
-      streak++;
-      checkDay--;
-    } else {
-      break;
-    }
-  }
-
-  // Only update if we found a streak
-  if (streak > 0) {
-    updateUserProfile({
-      currentStreak: streak,
-      longestStreak: Math.max(profile.longestStreak, streak),
-      lastActiveDate: getDateForDayNumber(getCurrentDay() - 1),
-    });
-  }
-}
-
 export function applyMissedTasksDecay(): void {
   if (typeof window === 'undefined') return;
 

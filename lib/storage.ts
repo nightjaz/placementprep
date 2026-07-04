@@ -18,9 +18,11 @@ export function generateId(): string {
 
 export function getTodayString(): string {
   const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
+  // Day starts at 6 AM IST - subtract 6 hours to get the "logical" day
+  const adjusted = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+  const year = adjusted.getFullYear();
+  const month = String(adjusted.getMonth() + 1).padStart(2, '0');
+  const day = String(adjusted.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
