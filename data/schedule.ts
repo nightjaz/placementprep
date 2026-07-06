@@ -191,7 +191,7 @@ export const SCHEDULE: DaySchedule[] = [
       { name: 'Count Good Nodes', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/count-good-nodes-in-binary-tree/' },
     ],
     cs: { category: 'DBMS', topic: 'Indexing', subtopics: ['B+ Trees', 'Hashing', 'Query Optimization'] },
-    ece: { category: 'Embedded', topic: 'Rest Day', subtopics: [] },
+    ece: { category: 'Embedded', topic: 'MatShrink', subtopics: ['demo 1: testing basic code', 'proving matshrink', 'proving matshrink on actual model', 'implementing matshrink on cuda', 'understanding matshrink'] },
   },
   {
     day: 12,
