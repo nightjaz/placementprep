@@ -191,7 +191,7 @@ export const SCHEDULE: DaySchedule[] = [
       { name: 'Count Good Nodes', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/count-good-nodes-in-binary-tree/' },
     ],
     cs: { category: 'DBMS', topic: 'Indexing', subtopics: ['B+ Trees', 'Hashing', 'Query Optimization'] },
-    ece: { category: 'Embedded', topic: 'Protocols + Peripherals + Debug', subtopics: ['UART vs SPI vs I2C comparison', 'CPOL/CPHA, I2C addressing, clock stretch', 'CAN arbitration basics', 'DMA-driven transfers', 'GPIO modes, pull-up/down, open-drain', 'Timers, prescaler, PWM', 'Watchdog timer', 'Hard fault debugging', 'JTAG/SWD basics', 'Logic analyzer vs oscilloscope', 'Linker map, .bss size issues', 'FSM, latch vs flip-flop basics'] },
+    ece: { category: 'Embedded', topic: 'Rest Day', subtopics: [] },
   },
   {
     day: 12,
@@ -208,7 +208,7 @@ export const SCHEDULE: DaySchedule[] = [
       { name: 'Find Median from Data Stream', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/find-median-from-data-stream/' },
     ],
     cs: { category: 'CN', topic: 'Transport Layer', subtopics: ['TCP', 'UDP', 'Flow Control'] },
-    ece: { category: 'Embedded', topic: 'RTOS', subtopics: ['Tasks', 'Scheduling', 'Semaphores'] },
+    ece: { category: 'Embedded', topic: 'Protocols', subtopics: ['UART vs SPI vs I2C comparison', 'CPOL/CPHA, I2C addressing, clock stretch', 'CAN arbitration basics', 'DMA-driven transfers'] },
   },
   {
     day: 13,
@@ -226,7 +226,7 @@ export const SCHEDULE: DaySchedule[] = [
       { name: 'Surrounded Regions', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/surrounded-regions/' },
     ],
     cs: { category: 'OS', topic: 'Synchronization', subtopics: ['Mutex', 'Semaphores', 'Monitors'] },
-    ece: { category: 'Digital', topic: 'Boolean Algebra Advanced', subtopics: ['QM Method'] },
+    ece: { category: 'Embedded', topic: 'Peripherals', subtopics: ['GPIO modes, pull-up/down, open-drain', 'Timers, prescaler, PWM', 'Watchdog timer', 'Hard fault debugging'] },
   },
   {
     day: 14,
@@ -244,7 +244,7 @@ export const SCHEDULE: DaySchedule[] = [
       { name: 'Alien Dictionary', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/alien-dictionary/' },
     ],
     cs: { category: 'DBMS', topic: 'Recovery', subtopics: ['Log-based', 'Checkpointing'] },
-    ece: { category: 'Analog', topic: 'Diodes Advanced', subtopics: ['LED', 'Photodiode', 'Schottky'] },
+    ece: { category: 'Embedded', topic: 'Debugging', subtopics: ['JTAG/SWD basics', 'Logic analyzer vs oscilloscope', 'Linker map, .bss size issues', 'FSM, latch vs flip-flop basics'] },
   },
   {
     day: 15,
