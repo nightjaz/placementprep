@@ -104,11 +104,13 @@ function getDaysBetween(date1: string, date2: string): number {
 }
 
 function getYesterdayString(): string {
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const year = yesterday.getFullYear();
-  const month = String(yesterday.getMonth() + 1).padStart(2, '0');
-  const day = String(yesterday.getDate()).padStart(2, '0');
+  const now = new Date();
+  // Day starts at 6 AM IST - subtract 6 hours to get the "logical" day
+  const adjusted = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+  adjusted.setDate(adjusted.getDate() - 1);
+  const year = adjusted.getFullYear();
+  const month = String(adjusted.getMonth() + 1).padStart(2, '0');
+  const day = String(adjusted.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
@@ -413,9 +415,11 @@ function getFreezesUsedThisWeek(): number {
 
 function getWeekStart(): string {
   const now = new Date();
-  const dayOfWeek = now.getDay();
-  const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-  const weekStart = new Date(now.setDate(diff));
+  // Day starts at 6 AM IST - subtract 6 hours to get the "logical" day
+  const adjusted = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+  const dayOfWeek = adjusted.getDay();
+  const diff = adjusted.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+  const weekStart = new Date(adjusted.setDate(diff));
   return weekStart.toISOString().split('T')[0];
 }
 
