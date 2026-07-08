@@ -222,8 +222,8 @@ export const SCHEDULE: DaySchedule[] = [
       { name: 'Surrounded Regions', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/surrounded-regions/' },
       { name: 'Kth Largest Element in an Array', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/kth-largest-element-in-an-array/' },
     ],
-    cs: { category: 'OS', topic: 'Synchronization', subtopics: ['Mutex', 'Semaphores', 'Monitors'] },
-    ece: { category: 'Embedded', topic: 'Peripherals', subtopics: ['GPIO modes, pull-up/down, open-drain', 'Timers, prescaler, PWM', 'Watchdog timer', 'Hard fault debugging'] },
+    cs: { category: 'OS', topic: 'Synchronization + Recovery (DBMS)', subtopics: ['Mutex', 'Semaphores', 'Monitors', 'Log-based', 'Checkpointing'] },
+    ece: { category: 'Embedded', topic: 'Peripherals + Debugging', subtopics: ['GPIO modes, pull-up/down, open-drain', 'Timers, prescaler, PWM', 'Watchdog timer', 'Hard fault debugging', 'JTAG/SWD basics', 'Logic analyzer vs oscilloscope', 'Linker map, .bss size issues', 'FSM, latch vs flip-flop basics'] },
   },
   {
     day: 14,
@@ -658,15 +658,6 @@ export const SCHEDULE: DaySchedule[] = [
     ece: { category: 'Analog', topic: 'Formula Sheet Review', subtopics: ['All formulas'] },
   },
 ];
-
-export function getTodaySchedule(): DaySchedule | null {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  const today = `${year}-${month}-${day}`;
-  return SCHEDULE.find(s => s.date === today) || null;
-}
 
 export function getCurrentDay(): number {
   const now = new Date();
