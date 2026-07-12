@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
-import { getCurrentDay, getScheduleByDay, DaySchedule } from '@/data/schedule';
+import { getCurrentDay, getScheduleByDay, DaySchedule, ScheduledProblem } from '@/data/schedule';
 import { getDailyLog, saveDailyLog, generateId } from '@/lib/storage';
 import { DailyLog } from '@/types';
-import { calculateFundamentalsXP, calculateElectronicsXP, awardXP } from '@/lib/xp-calculator';
+import { calculateFundamentalsXP, calculateElectronicsXP, calculateDSAXP, awardXP } from '@/lib/xp-calculator';
 import { markTodayActive } from '@/lib/streak-manager';
-import { FundamentalsTopic, ElectronicsTopic, FundamentalsCategory, ElectronicsCategory } from '@/types';
+import { FundamentalsTopic, ElectronicsTopic, FundamentalsCategory, ElectronicsCategory, DSAProblem } from '@/types';
 
 interface LaggingTopicsProps {
   onComplete?: () => void;
@@ -20,6 +20,7 @@ interface LaggingItem {
   label: string;
   detail: string;
   schedule: DaySchedule;
+  problem?: ScheduledProblem;
 }
 
 function getDateForDayNumber(dayNumber: number): string {
@@ -46,17 +47,18 @@ export function LaggingTopics({ onComplete }: LaggingTopicsProps) {
       const dateStr = getDateForDayNumber(day);
       const log = getDailyLog(dateStr);
 
-      // Check DSA problems
+      // Check DSA problems - one lagging item per unsolved problem
       const completedProblems = new Set(log?.dsaProblems.map(p => p.name) || []);
-      const dsaDone = schedule.problems.filter(p => completedProblems.has(p.name)).length;
-      if (dsaDone < schedule.problems.length && schedule.problems.length > 0) {
+      for (const problem of schedule.problems) {
+        if (completedProblems.has(problem.name)) continue;
         items.push({
           day,
           date: dateStr,
           type: 'dsa',
-          label: `Day ${day} DSA`,
-          detail: `${dsaDone}/${schedule.problems.length} - ${schedule.topic}`,
+          label: problem.name,
+          detail: `Day ${day} - ${schedule.topic} (${problem.difficulty})`,
           schedule,
+          problem,
         });
       }
 
@@ -112,6 +114,34 @@ export function LaggingTopics({ onComplete }: LaggingTopicsProps) {
       debtPaid: [],
       notes: '',
     };
+
+    if (item.type === 'dsa' && item.problem) {
+      const difficultyMap: Record<string, 'easy' | 'medium' | 'hard'> = {
+        E: 'easy',
+        M: 'medium',
+        H: 'hard',
+      };
+
+      const problem: DSAProblem = {
+        id: generateId(),
+        name: item.problem.name,
+        platform: 'leetcode',
+        difficulty: difficultyMap[item.problem.difficulty],
+        topic: 'other',
+        struggled: false,
+        isBootcamp: false,
+        timestamp: new Date().toISOString(),
+        xpAwarded: 0,
+      };
+
+      const isFirstOfDay = log.dsaProblems.length === 0;
+      const baseXP = calculateDSAXP(problem, isFirstOfDay);
+      const finalXP = awardXP(baseXP);
+      problem.xpAwarded = finalXP;
+
+      log.dsaProblems.push(problem);
+      saveDailyLog(log);
+    }
 
     if (item.type === 'cs') {
       const categoryMap: Record<string, FundamentalsCategory> = {
@@ -254,11 +284,19 @@ export function LaggingTopics({ onComplete }: LaggingTopicsProps) {
               <p className="text-red-300/80 text-xs font-medium uppercase tracking-wider">DSA ({dsaItems.length})</p>
               {dsaItems.slice(0, 5).map((item) => (
                 <div
-                  key={`${item.day}-${item.type}`}
-                  className="bg-red-950/30 border border-red-900/50 rounded-lg px-3 py-2"
+                  key={`${item.day}-${item.type}-${item.problem?.name}`}
+                  className="flex items-center justify-between bg-red-950/30 border border-red-900/50 rounded-lg px-3 py-2"
                 >
-                  <p className="text-red-300 text-sm font-medium truncate">{item.label}</p>
-                  <p className="text-red-400/60 text-xs truncate">{item.detail}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-red-300 text-sm font-medium truncate">{item.label}</p>
+                    <p className="text-red-400/60 text-xs truncate">{item.detail}</p>
+                  </div>
+                  <button
+                    onClick={() => handleQuickComplete(item)}
+                    className="text-xs bg-red-500/20 hover:bg-red-500/30 text-red-300 px-2 py-1 rounded transition-colors ml-2 flex-shrink-0"
+                  >
+                    Done
+                  </button>
                 </div>
               ))}
               {dsaItems.length > 5 && (
