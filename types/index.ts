@@ -47,6 +47,11 @@ export interface DailyLog {
   notes: string;
 }
 
+// Coverage-phase completion levels (until revision phase kicks in):
+// A = solved independently, B = solved after a hint, C = studied + rewritten from memory.
+// C counts as "done" for coverage purposes; revision order is C -> B -> A.
+export type CompletionLevel = 'A' | 'B' | 'C';
+
 export interface DSAProblem {
   id: string;
   name: string;
@@ -55,6 +60,7 @@ export interface DSAProblem {
   topic: DSATopic;
   timeMinutes?: number;
   struggled: boolean;
+  completionLevel?: CompletionLevel;
   isBootcamp: boolean;
   timestamp: string;
   xpAwarded: number;
