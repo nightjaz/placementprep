@@ -2,13 +2,16 @@ export interface ScheduledProblem {
   name: string;
   difficulty: 'E' | 'M' | 'H';
   leetcodeUrl?: string;
+  // Coverage-phase grouping (e.g. "linear decision DP", "unbounded knapsack").
+  // Problems sharing a group share a pattern; derive the first one, learn the rest faster.
+  group?: string;
 }
 
 export interface DaySchedule {
   day: number;
   date: string;
   topic: string;
-  phase: 'foundation' | 'intermediate' | 'revision';
+  phase: 'foundation' | 'intermediate' | 'revision' | 'gap-closing';
   problemCount: number;
   problems: ScheduledProblem[];
   cs: {
@@ -21,6 +24,8 @@ export interface DaySchedule {
     topic: string;
     subtopics: string[];
   };
+  // Free-form guidance for days that aren't a fixed problem list (e.g. gap-closing day).
+  focusNote?: string;
 }
 
 export const START_DATE = '2026-06-26';
@@ -334,154 +339,138 @@ export const SCHEDULE: DaySchedule[] = [
   {
     day: 19,
     date: getDateForDay(19),
-    topic: 'DP 1D + Knapsack',
+    topic: 'DP 1D + Knapsack (coverage pass)',
     phase: 'intermediate',
-    problemCount: 12,
+    problemCount: 11,
     problems: [
-      { name: 'Climbing Stairs', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/climbing-stairs/' },
-      { name: 'Min Cost Climbing Stairs', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/min-cost-climbing-stairs/' },
-      { name: 'House Robber', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/house-robber/' },
-      { name: 'House Robber II', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/house-robber-ii/' },
-      { name: 'Decode Ways', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/decode-ways/' },
-      { name: 'Coin Change', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/coin-change/' },
-      { name: 'Coin Change 2', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/coin-change-ii/' },
-      { name: 'Word Break', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/word-break/' },
-      { name: 'Longest Increasing Subsequence', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/longest-increasing-subsequence/' },
-      { name: 'Partition Equal Subset Sum', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/partition-equal-subset-sum/' },
-      { name: 'Target Sum', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/target-sum/' },
-      { name: 'Last Stone Weight II', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/last-stone-weight-ii/' },
+      { name: 'Climbing Stairs', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/climbing-stairs/', group: 'Linear decision DP' },
+      { name: 'Min Cost Climbing Stairs', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/min-cost-climbing-stairs/', group: 'Linear decision DP' },
+      { name: 'House Robber', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/house-robber/', group: 'Linear decision DP' },
+      { name: 'House Robber II', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/house-robber-ii/', group: 'Linear decision DP' },
+      { name: 'Decode Ways', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/decode-ways/', group: 'Prefix DP' },
+      { name: 'Word Break', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/word-break/', group: 'Prefix DP' },
+      { name: 'Coin Change', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/coin-change/', group: 'Unbounded knapsack' },
+      { name: 'Coin Change 2', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/coin-change-ii/', group: 'Unbounded knapsack' },
+      { name: 'Longest Increasing Subsequence', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/longest-increasing-subsequence/', group: 'Subsequence / 0-1 knapsack' },
+      { name: 'Partition Equal Subset Sum', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/partition-equal-subset-sum/', group: 'Subsequence / 0-1 knapsack' },
+      { name: 'Last Stone Weight II', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/last-stone-weight-ii/', group: 'Subsequence / 0-1 knapsack' },
     ],
     cs: { category: 'OS', topic: 'DSA Sprint — No CS', subtopics: [] },
     ece: { category: 'Embedded', topic: 'DSA Sprint — No ECE', subtopics: [] },
+    focusNote: 'Coverage-first, not mastery. Derive the first problem in each group yourself (10-15 min to spot the pattern, take a hint if the transition won\'t click, study+rewrite if it still won\'t click after 10 more min). The rest of the group should go faster once the state is clear. Studied-and-rewritten (C) counts as done.',
   },
   {
     day: 20,
     date: getDateForDay(20),
-    topic: 'DP 2D + String DP',
+    topic: 'Grid DP + Basic String DP (coverage pass)',
     phase: 'intermediate',
-    problemCount: 12,
+    problemCount: 8,
     problems: [
-      { name: 'Unique Paths', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/unique-paths/' },
-      { name: 'Unique Paths II', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/unique-paths-ii/' },
-      { name: 'Minimum Path Sum', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/minimum-path-sum/' },
-      { name: 'Triangle', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/triangle/' },
-      { name: 'Maximal Square', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/maximal-square/' },
-      { name: 'Longest Common Subsequence', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/longest-common-subsequence/' },
-      { name: 'Longest Palindromic Subsequence', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/longest-palindromic-subsequence/' },
-      { name: 'Longest Palindromic Substring', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/longest-palindromic-substring/' },
-      { name: 'Palindromic Substrings', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/palindromic-substrings/' },
-      { name: 'Edit Distance', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/edit-distance/' },
-      { name: 'Interleaving String', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/interleaving-string/' },
-      { name: 'Distinct Subsequences', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/distinct-subsequences/' },
+      { name: 'Unique Paths', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/unique-paths/', group: 'Grid-state DP' },
+      { name: 'Unique Paths II', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/unique-paths-ii/', group: 'Grid-state DP' },
+      { name: 'Minimum Path Sum', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/minimum-path-sum/', group: 'Grid-state DP' },
+      { name: 'Triangle', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/triangle/', group: 'Grid-state DP' },
+      { name: 'Maximal Square', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/maximal-square/', group: 'Grid-state DP' },
+      { name: 'Longest Common Subsequence', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/longest-common-subsequence/', group: 'Two-string DP' },
+      { name: 'Longest Palindromic Subsequence', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/longest-palindromic-subsequence/', group: 'Interval/string DP' },
+      { name: 'Palindromic Substrings', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/palindromic-substrings/', group: 'Interval/string DP' },
     ],
     cs: { category: 'OS', topic: 'DSA Sprint — No CS', subtopics: [] },
     ece: { category: 'Embedded', topic: 'DSA Sprint — No ECE', subtopics: [] },
+    focusNote: 'Establishes grid-state DP, two-string DP, and interval/string DP (incl. expand-around-centre vs DP for palindromes). Leave Edit Distance and the harder string DP for tomorrow.',
   },
   {
     day: 21,
     date: getDateForDay(21),
-    topic: 'DP Advanced + Stocks',
+    topic: 'Advanced String DP (coverage pass)',
     phase: 'intermediate',
-    problemCount: 10,
+    problemCount: 6,
     problems: [
-      { name: 'Best Time to Buy and Sell Stock II', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/best-time-to-buy-and-sell-stock-ii/' },
-      { name: 'Best Time with Cooldown', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/' },
-      { name: 'Best Time with Transaction Fee', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/' },
-      { name: 'Best Time to Buy and Sell Stock III', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/' },
-      { name: 'Best Time to Buy and Sell Stock IV', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/' },
-      { name: 'Longest Valid Parentheses', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/longest-valid-parentheses/' },
-      { name: 'Minimum Cost to Cut a Stick', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/minimum-cost-to-cut-a-stick/' },
-      { name: 'Burst Balloons', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/burst-balloons/' },
-      { name: 'Regular Expression Matching', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/regular-expression-matching/' },
-      { name: 'Profitable Schemes', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/profitable-schemes/' },
+      { name: 'Edit Distance', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/edit-distance/', group: 'Two-string edit DP' },
+      { name: 'Interleaving String', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/interleaving-string/', group: 'Two-string edit DP' },
+      { name: 'Distinct Subsequences', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/distinct-subsequences/', group: 'Two-string edit DP' },
+      { name: 'Regular Expression Matching', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/regular-expression-matching/', group: 'Pattern-matching DP' },
+      { name: 'Longest Valid Parentheses', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/longest-valid-parentheses/', group: 'Stack / string DP' },
+      { name: 'Palindrome Partitioning II', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/palindrome-partitioning-ii/', group: 'Stack / string DP' },
     ],
     cs: { category: 'OS', topic: 'DSA Sprint — No CS', subtopics: [] },
     ece: { category: 'Embedded', topic: 'DSA Sprint — No ECE', subtopics: [] },
+    focusNote: 'Not mastery of regex DP. Just: what does dp[i][j] mean, why does "*" create multiple transitions, how do matching and skipping differ. Regular Expression Matching can stay "recognition-only" for now.',
   },
   {
     day: 22,
     date: getDateForDay(22),
-    topic: 'Bit/Matrix/Stack/Design Mixed',
+    topic: 'Stock DP + Interval DP (coverage pass)',
     phase: 'intermediate',
-    problemCount: 21,
+    problemCount: 8,
     problems: [
-      { name: 'Kth Largest Element in an Array', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/kth-largest-element-in-an-array/' },
-      { name: 'Find Median from Data Stream', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/find-median-from-data-stream/' },
-      { name: 'LRU Cache', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/lru-cache/' },
-      { name: 'Design Twitter', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/design-twitter/' },
-      { name: 'Number of 1 Bits', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/number-of-1-bits/' },
-      { name: 'Counting Bits', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/counting-bits/' },
-      { name: 'Reverse Bits', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/reverse-bits/' },
-      { name: 'Single Number II', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/single-number-ii/' },
-      { name: 'Single Number III', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/single-number-iii/' },
-      { name: 'Missing Number', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/missing-number/' },
-      { name: 'Sum of Two Integers', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/sum-of-two-integers/' },
-      { name: 'Rotate Image', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/rotate-image/' },
-      { name: 'Spiral Matrix', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/spiral-matrix/' },
-      { name: 'Set Matrix Zeroes', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/set-matrix-zeroes/' },
-      { name: 'Largest Rectangle in Histogram', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/largest-rectangle-in-histogram/' },
-      { name: 'Trapping Rain Water', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/trapping-rain-water/' },
-      { name: 'Daily Temperatures', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/daily-temperatures/' },
-      { name: 'Sliding Window Maximum', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/sliding-window-maximum/' },
-      { name: 'Minimum Window Substring', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/minimum-window-substring/' },
-      { name: 'LFU Cache', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/lfu-cache/' },
-      { name: 'Median of Two Sorted Arrays', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/median-of-two-sorted-arrays/' },
+      { name: 'Best Time to Buy and Sell Stock II', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/best-time-to-buy-and-sell-stock-ii/', group: 'Holding/not-holding state' },
+      { name: 'Best Time with Cooldown', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/', group: 'Holding/not-holding state' },
+      { name: 'Best Time with Transaction Fee', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/', group: 'Holding/not-holding state' },
+      { name: 'Best Time to Buy and Sell Stock III', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/', group: 'Transaction-count state' },
+      { name: 'Best Time to Buy and Sell Stock IV', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/', group: 'Transaction-count state' },
+      { name: 'Minimum Cost to Cut a Stick', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/minimum-cost-to-cut-a-stick/', group: 'Interval DP' },
+      { name: 'Burst Balloons', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/burst-balloons/', group: 'Interval DP' },
+      { name: 'Matrix Chain Multiplication', difficulty: 'M', leetcodeUrl: 'https://practice.geeksforgeeks.org/problems/matrix-chain-multiplication0303/1', group: 'Interval DP' },
     ],
     cs: { category: 'OS', topic: 'DSA Sprint — No CS', subtopics: [] },
     ece: { category: 'Embedded', topic: 'DSA Sprint — No ECE', subtopics: [] },
+    focusNote: 'Core ideas: holding/not-holding state, transaction-count state, interval DP, and choosing the final operation rather than the first. Don\'t separately grind Stock III and IV for an hour each — once the transaction-state model clicks, treat IV as III\'s generalization.',
   },
   {
     day: 23,
     date: getDateForDay(23),
-    topic: 'DP (2D Basics)',
+    topic: 'Bit Manipulation + Matrix + Monotonic Stack (coverage pass)',
     phase: 'intermediate',
-    problemCount: 7,
+    problemCount: 13,
     problems: [
-      { name: 'Unique Paths', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/unique-paths/' },
-      { name: 'Unique Paths II', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/unique-paths-ii/' },
-      { name: 'Minimum Path Sum', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/minimum-path-sum/' },
-      { name: 'Triangle', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/triangle/' },
-      { name: 'Maximal Square', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/maximal-square/' },
-      { name: 'Interleaving String', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/interleaving-string/' },
-      { name: 'Edit Distance', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/edit-distance/' },
+      { name: 'Number of 1 Bits', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/number-of-1-bits/', group: 'Bit counting' },
+      { name: 'Counting Bits', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/counting-bits/', group: 'Bit counting' },
+      { name: 'Reverse Bits', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/reverse-bits/', group: 'Bit counting' },
+      { name: 'Single Number II', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/single-number-ii/', group: 'XOR cancellation / bit partitioning' },
+      { name: 'Single Number III', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/single-number-iii/', group: 'XOR cancellation / bit partitioning' },
+      { name: 'Missing Number', difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/missing-number/', group: 'XOR cancellation / bit partitioning' },
+      { name: 'Sum of Two Integers', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/sum-of-two-integers/', group: 'XOR cancellation / bit partitioning' },
+      { name: 'Rotate Image', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/rotate-image/', group: 'In-place matrix transforms' },
+      { name: 'Spiral Matrix', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/spiral-matrix/', group: 'In-place matrix transforms' },
+      { name: 'Set Matrix Zeroes', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/set-matrix-zeroes/', group: 'In-place matrix transforms' },
+      { name: 'Daily Temperatures', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/daily-temperatures/', group: 'Monotonic stack' },
+      { name: 'Largest Rectangle in Histogram', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/largest-rectangle-in-histogram/', group: 'Monotonic stack' },
+      { name: 'Trapping Rain Water', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/trapping-rain-water/', group: 'Monotonic stack' },
     ],
     cs: { category: 'DBMS', topic: 'Query Optimization', subtopics: ['Execution Plans', 'Indexes'] },
     ece: { category: 'Analog', topic: 'Op-Amp Applications', subtopics: ['Integrator', 'Filters'] },
+    focusNote: 'Prioritize the pattern over the count: Largest Rectangle and Trapping Rain Water matter more than grinding every small bit-manipulation problem independently.',
   },
   {
     day: 24,
     date: getDateForDay(24),
-    topic: 'DP (2D Advanced)',
+    topic: 'Design + Advanced Data Structures (coverage pass)',
     phase: 'intermediate',
-    problemCount: 6,
+    problemCount: 7,
     problems: [
-      { name: "Pascal's Triangle", difficulty: 'E', leetcodeUrl: 'https://leetcode.com/problems/pascals-triangle/' },
-      { name: 'Longest Common Subsequence', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/longest-common-subsequence/' },
-      { name: 'Shortest Common Supersequence', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/shortest-common-supersequence/' },
-      { name: 'Longest Palindromic Subsequence', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/longest-palindromic-subsequence/' },
-      { name: 'Distinct Subsequences', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/distinct-subsequences/' },
-      { name: 'Regular Expression Matching', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/regular-expression-matching/' },
+      { name: 'LRU Cache', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/lru-cache/', group: 'Priority 1' },
+      { name: 'Find Median from Data Stream', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/find-median-from-data-stream/', group: 'Priority 2' },
+      { name: 'Sliding Window Maximum', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/sliding-window-maximum/', group: 'Priority 3' },
+      { name: 'Minimum Window Substring', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/minimum-window-substring/', group: 'Priority 4' },
+      { name: 'Median of Two Sorted Arrays', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/median-of-two-sorted-arrays/', group: 'Priority 5' },
+      { name: 'Design Twitter', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/design-twitter/', group: 'Priority 6' },
+      { name: 'LFU Cache', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/lfu-cache/', group: 'Priority 7 (lowest value)' },
     ],
     cs: { category: 'CN', topic: 'Routing Protocols', subtopics: ['RIP', 'OSPF', 'BGP'] },
     ece: { category: 'Embedded', topic: 'ADC/DAC', subtopics: ['Resolution', 'Sampling'] },
+    focusNote: 'Work top to bottom in priority order. LFU Cache is implementation-heavy and lowest-value for a first pass — understand the architecture (hashmap + freq buckets), but don\'t let it eat half the day.',
   },
   {
     day: 25,
     date: getDateForDay(25),
-    topic: 'DP (Knapsack)',
-    phase: 'intermediate',
-    problemCount: 7,
-    problems: [
-      { name: '0/1 Knapsack', difficulty: 'M', leetcodeUrl: 'https://practice.geeksforgeeks.org/problems/0-1-knapsack-problem0945/1' },
-      { name: 'Target Sum', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/target-sum/' },
-      { name: 'Coin Change 2', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/coin-change-ii/' },
-      { name: 'Ones and Zeroes', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/ones-and-zeroes/' },
-      { name: 'Last Stone Weight II', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/last-stone-weight-ii/' },
-      { name: 'Profitable Schemes', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/profitable-schemes/' },
-      { name: 'Minimum Cost to Cut a Stick', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/minimum-cost-to-cut-a-stick/' },
-    ],
-    cs: { category: 'OS', topic: 'Disk Scheduling', subtopics: ['FCFS', 'SSTF', 'SCAN'] },
-    ece: { category: 'Digital', topic: 'PLAs/PALs/FPGAs', subtopics: ['Architecture', 'Programming'] },
+    topic: 'Gap-Closing Day',
+    phase: 'gap-closing',
+    problemCount: 0,
+    problems: [],
+    cs: { category: 'OS', topic: 'DSA Sprint — No CS', subtopics: [] },
+    ece: { category: 'Embedded', topic: 'DSA Sprint — No ECE', subtopics: [] },
+    focusNote: 'No new problems today — only revisit whatever from July 14-19 still feels completely unfamiliar. Likely candidates: 0/1 vs unbounded knapsack, Edit Distance, Regex Matching, stock state machines, interval DP, monotonic stack, LRU Cache, Median of Two Sorted Arrays. Do not add new obscure hard problems. By end of day, fill out the one-page pattern index (see Pattern Index below) — that becomes your revision anchor.',
   },
   {
     day: 26,
@@ -674,3 +663,23 @@ export function getScheduleByDay(day: number): DaySchedule | null {
 export function getTotalProblems(): number {
   return SCHEDULE.reduce((sum, day) => sum + day.problems.length, 0);
 }
+
+export interface PatternIndexEntry {
+  pattern: string;
+  clue: string;
+  state: string;
+}
+
+// One-page revision anchor built during the July 14-20 coverage pass.
+// Recognition target: given a new problem, name the pattern from the clue alone.
+export const PATTERN_INDEX: PatternIndexEntry[] = [
+  { pattern: '1D DP', clue: 'Answer depends on previous positions', state: 'dp[i]' },
+  { pattern: 'Grid DP', clue: 'Move through a matrix', state: 'dp[r][c]' },
+  { pattern: '0/1 knapsack', clue: 'Use each item once', state: 'iterate capacity backward' },
+  { pattern: 'Unbounded knapsack', clue: 'Reuse an item allowed', state: 'iterate capacity forward' },
+  { pattern: 'String DP', clue: 'Compare prefixes of two strings', state: 'dp[i][j]' },
+  { pattern: 'Interval DP', clue: 'Solve over a range, combine subranges', state: 'dp[l][r]' },
+  { pattern: 'Stock DP', clue: 'Buy/sell with a state machine', state: 'day, holding, transactions' },
+  { pattern: 'Monotonic stack', clue: 'Next greater/smaller element', state: 'stack of indices' },
+  { pattern: 'LRU', clue: 'O(1) recency eviction', state: 'hashmap + doubly linked list' },
+];
