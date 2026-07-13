@@ -10,6 +10,7 @@ import { DSATracker, RecentProblems } from '@/components/tracking/DSATracker';
 import { FundamentalsTracker } from '@/components/tracking/FundamentalsTracker';
 import { ElectronicsTracker } from '@/components/tracking/ElectronicsTracker';
 import { TodaySchedule } from '@/components/schedule/TodaySchedule';
+import { PatternIndex } from '@/components/schedule/PatternIndex';
 import { CalendarGrid } from '@/components/calendar/CalendarGrid';
 import { HeatMap } from '@/components/calendar/HeatMap';
 import { RoastDisplay } from '@/components/roasts/RoastDisplay';
@@ -129,6 +130,8 @@ export function Dashboard({ profile, onRefresh }: DashboardProps) {
               </div>
 
               <TodaySchedule onProblemComplete={refreshLog} />
+
+              <PatternIndex />
 
               <Card>
                 <CardHeader title="Progress" />
