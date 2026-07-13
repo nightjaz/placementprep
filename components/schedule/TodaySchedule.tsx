@@ -9,7 +9,14 @@ import { getTodayLog, saveDailyLog, generateId } from '@/lib/storage';
 import { calculateDSAXP, calculateFundamentalsXP, calculateElectronicsXP, awardXP, decayXP } from '@/lib/xp-calculator';
 import { markTodayActive } from '@/lib/streak-manager';
 import { adjustScheduleForBootcamp, getAvailableTopics } from '@/lib/bootcamp-sync';
-import { DSAProblem, FundamentalsTopic, ElectronicsTopic, FundamentalsCategory, ElectronicsCategory } from '@/types';
+import { DSAProblem, FundamentalsTopic, ElectronicsTopic, FundamentalsCategory, ElectronicsCategory, CompletionLevel } from '@/types';
+
+const COMPLETION_LEVEL_ORDER: CompletionLevel[] = ['A', 'B', 'C'];
+const COMPLETION_LEVEL_LABEL: Record<CompletionLevel, string> = {
+  A: 'A · solved independently',
+  B: 'B · solved after hint',
+  C: 'C · studied + rewritten',
+};
 
 interface TodayScheduleProps {
   onProblemComplete?: () => void;
@@ -43,6 +50,7 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
   const [displayProblems, setDisplayProblems] = useState<ScheduledProblem[]>([]);
   const [completedProblems, setCompletedProblems] = useState<Set<string>>(new Set());
   const [struggledProblems, setStruggledProblems] = useState<Set<string>>(new Set());
+  const [completionLevels, setCompletionLevels] = useState<Map<string, CompletionLevel>>(new Map());
   const [csCompleted, setCsCompleted] = useState(false);
   const [eceCompleted, setEceCompleted] = useState(false);
   const [csConfidence, setCsConfidence] = useState<number | null>(null);
@@ -76,6 +84,11 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
     setCompletedProblems(completed);
     const struggled = new Set(log.dsaProblems.filter(p => p.struggled).map(p => p.name));
     setStruggledProblems(struggled);
+    const levels = new Map<string, CompletionLevel>();
+    log.dsaProblems.forEach(p => {
+      levels.set(p.name, p.completionLevel ?? (p.struggled ? 'B' : 'A'));
+    });
+    setCompletionLevels(levels);
     setCsCompleted(log.fundamentalsTopic !== null);
     setEceCompleted(log.electronicsTopic !== null);
     if (log.fundamentalsTopic) setCsConfidence(log.fundamentalsTopic.confidence);
@@ -125,6 +138,10 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
       const newCompleted = new Set(completedProblems);
       newCompleted.delete(problem.name);
       setCompletedProblems(newCompleted);
+
+      const newLevels = new Map(completionLevels);
+      newLevels.delete(problem.name);
+      setCompletionLevels(newLevels);
     } else {
       const difficultyMap: Record<string, 'easy' | 'medium' | 'hard'> = {
         'E': 'easy',
@@ -135,6 +152,7 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
       const isFirstOfDay = log.dsaProblems.length === 0;
       const difficulty = difficultyMap[problem.difficulty];
       const baseXP = calculateDSAXP({ difficulty } as DSAProblem, isFirstOfDay);
+      const defaultLevel: CompletionLevel = 'A';
 
       const newProblem: DSAProblem = {
         id: generateId(),
@@ -143,6 +161,7 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
         difficulty,
         topic: 'other',
         struggled: struggledProblems.has(problem.name),
+        completionLevel: defaultLevel,
         isBootcamp: bootcampTopic !== null,
         timestamp: new Date().toISOString(),
         xpAwarded: baseXP,
@@ -156,6 +175,10 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
       newCompleted.add(problem.name);
       setCompletedProblems(newCompleted);
 
+      const newLevels = new Map(completionLevels);
+      newLevels.set(problem.name, defaultLevel);
+      setCompletionLevels(newLevels);
+
       markTodayActive();
     }
 
@@ -163,22 +186,30 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
     onProblemComplete?.();
   };
 
-  const handleStruggledToggle = (problemName: string) => {
+  const handleCompletionLevelCycle = (problemName: string) => {
     const log = getTodayLog();
-    const newStruggled = new Set(struggledProblems);
+    const problem = log.dsaProblems.find(p => p.name === problemName);
+    if (!problem) return;
 
-    if (newStruggled.has(problemName)) {
+    const currentLevel = completionLevels.get(problemName) ?? 'A';
+    const nextIndex = (COMPLETION_LEVEL_ORDER.indexOf(currentLevel) + 1) % COMPLETION_LEVEL_ORDER.length;
+    const nextLevel = COMPLETION_LEVEL_ORDER[nextIndex];
+
+    problem.completionLevel = nextLevel;
+    problem.struggled = nextLevel !== 'A';
+    saveDailyLog(log);
+
+    const newLevels = new Map(completionLevels);
+    newLevels.set(problemName, nextLevel);
+    setCompletionLevels(newLevels);
+
+    const newStruggled = new Set(struggledProblems);
+    if (nextLevel === 'A') {
       newStruggled.delete(problemName);
     } else {
       newStruggled.add(problemName);
     }
     setStruggledProblems(newStruggled);
-
-    const problem = log.dsaProblems.find(p => p.name === problemName);
-    if (problem) {
-      problem.struggled = newStruggled.has(problemName);
-      saveDailyLog(log);
-    }
   };
 
   const handleCsToggle = () => {
@@ -385,6 +416,21 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
     );
   }
 
+  if (schedule.phase === 'gap-closing') {
+    return (
+      <Card>
+        <CardHeader
+          title={`Day ${schedule.day}`}
+          subtitle={schedule.topic}
+        />
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4">
+          <p className="text-zinc-300 font-medium mb-1">No new problems today</p>
+          <p className="text-zinc-500 text-sm">{schedule.focusNote}</p>
+        </div>
+      </Card>
+    );
+  }
+
   const completedCount = Array.from(completedProblems).filter(name =>
     displayProblems.some(p => p.name === name)
   ).length;
@@ -460,6 +506,13 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
           </div>
         )}
 
+        {schedule.focusNote && !isAdjusted && (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
+            <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Coverage focus</p>
+            <p className="text-zinc-400 text-sm">{schedule.focusNote}</p>
+          </div>
+        )}
+
         <div>
           <div className="flex justify-between items-center mb-2">
             <span className="text-xs text-zinc-500 uppercase tracking-wider">Progress</span>
@@ -477,17 +530,28 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
         </div>
 
         <div className="space-y-1">
-          {displayProblems.map((problem, index) => (
-            <ProblemRow
-              key={problem.name}
-              index={index + 1}
-              problem={problem}
-              completed={completedProblems.has(problem.name)}
-              struggled={struggledProblems.has(problem.name)}
-              onToggle={() => handleProblemToggle(problem)}
-              onStruggledToggle={() => handleStruggledToggle(problem.name)}
-            />
-          ))}
+          {displayProblems.map((problem, index) => {
+            const previousGroup = index > 0 ? displayProblems[index - 1].group : undefined;
+            const showGroupHeader = !!problem.group && problem.group !== previousGroup;
+
+            return (
+              <div key={problem.name}>
+                {showGroupHeader && (
+                  <p className="text-xs text-zinc-500 uppercase tracking-wider pt-3 pb-1 px-3 first:pt-0">
+                    {problem.group}
+                  </p>
+                )}
+                <ProblemRow
+                  index={index + 1}
+                  problem={problem}
+                  completed={completedProblems.has(problem.name)}
+                  completionLevel={completionLevels.get(problem.name) ?? 'A'}
+                  onToggle={() => handleProblemToggle(problem)}
+                  onCycleLevel={() => handleCompletionLevelCycle(problem.name)}
+                />
+              </div>
+            );
+          })}
         </div>
 
         <div className="pt-4 border-t border-zinc-800 space-y-4">
@@ -554,21 +618,27 @@ function ProblemRow({
   index,
   problem,
   completed,
-  struggled,
+  completionLevel,
   onToggle,
-  onStruggledToggle,
+  onCycleLevel,
 }: {
   index: number;
   problem: ScheduledProblem;
   completed: boolean;
-  struggled: boolean;
+  completionLevel: CompletionLevel;
   onToggle: () => void;
-  onStruggledToggle: () => void;
+  onCycleLevel: () => void;
 }) {
   const difficultyColors = {
     'E': 'text-emerald-500',
     'M': 'text-amber-500',
     'H': 'text-red-500',
+  };
+
+  const levelColors: Record<CompletionLevel, string> = {
+    A: 'bg-emerald-500/20 text-emerald-400',
+    B: 'bg-amber-500/20 text-amber-400',
+    C: 'bg-sky-500/20 text-sky-400',
   };
 
   return (
@@ -619,16 +689,15 @@ function ProblemRow({
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onStruggledToggle();
+            onCycleLevel();
           }}
+          title={COMPLETION_LEVEL_LABEL[completionLevel]}
           className={`
-            text-xs px-2 py-0.5 rounded transition-colors flex-shrink-0
-            ${struggled
-              ? 'bg-amber-500/20 text-amber-400'
-              : 'text-zinc-600 hover:text-zinc-400 opacity-0 group-hover:opacity-100'}
+            text-xs w-5 h-5 rounded flex items-center justify-center font-medium transition-colors flex-shrink-0
+            ${levelColors[completionLevel]}
           `}
         >
-          {struggled ? 'struggled' : 'mark'}
+          {completionLevel}
         </button>
       )}
     </div>
