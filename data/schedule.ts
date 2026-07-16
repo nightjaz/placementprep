@@ -393,7 +393,25 @@ export const SCHEDULE: DaySchedule[] = [
   {
     day: 22,
     date: getDateForDay(22),
-    topic: 'Stock DP + Interval DP (coverage pass)',
+    topic: 'Advanced String DP (coverage pass) — pushed from Day 21',
+    phase: 'intermediate',
+    problemCount: 6,
+    problems: [
+      { name: 'Edit Distance', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/edit-distance/', group: 'Two-string edit DP' },
+      { name: 'Interleaving String', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/interleaving-string/', group: 'Two-string edit DP' },
+      { name: 'Distinct Subsequences', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/distinct-subsequences/', group: 'Two-string edit DP' },
+      { name: 'Regular Expression Matching', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/regular-expression-matching/', group: 'Pattern-matching DP' },
+      { name: 'Longest Valid Parentheses', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/longest-valid-parentheses/', group: 'Stack / string DP' },
+      { name: 'Palindrome Partitioning II', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/palindrome-partitioning-ii/', group: 'Stack / string DP' },
+    ],
+    cs: { category: 'OS', topic: 'DSA Sprint — No CS', subtopics: [] },
+    ece: { category: 'Embedded', topic: 'DSA Sprint — No ECE', subtopics: [] },
+    focusNote: 'Not mastery of regex DP. Just: what does dp[i][j] mean, why does "*" create multiple transitions, how do matching and skipping differ. Regular Expression Matching can stay "recognition-only" for now.',
+  },
+  {
+    day: 23,
+    date: getDateForDay(23),
+    topic: 'Stock DP + Interval DP (coverage pass) — pushed from Day 22',
     phase: 'intermediate',
     problemCount: 8,
     problems: [
@@ -411,9 +429,9 @@ export const SCHEDULE: DaySchedule[] = [
     focusNote: 'Core ideas: holding/not-holding state, transaction-count state, interval DP, and choosing the final operation rather than the first. Don\'t separately grind Stock III and IV for an hour each — once the transaction-state model clicks, treat IV as III\'s generalization.',
   },
   {
-    day: 23,
-    date: getDateForDay(23),
-    topic: 'Bit Manipulation + Matrix + Monotonic Stack (coverage pass)',
+    day: 24,
+    date: getDateForDay(24),
+    topic: 'Bit Manipulation + Matrix + Monotonic Stack (coverage pass) — pushed from Day 23',
     phase: 'intermediate',
     problemCount: 13,
     problems: [
@@ -436,9 +454,9 @@ export const SCHEDULE: DaySchedule[] = [
     focusNote: 'Prioritize the pattern over the count: Largest Rectangle and Trapping Rain Water matter more than grinding every small bit-manipulation problem independently.',
   },
   {
-    day: 24,
-    date: getDateForDay(24),
-    topic: 'Design + Advanced Data Structures (coverage pass)',
+    day: 25,
+    date: getDateForDay(25),
+    topic: 'Design + Advanced Data Structures (coverage pass) — pushed from Day 24, gap day used',
     phase: 'intermediate',
     problemCount: 7,
     problems: [
@@ -452,18 +470,7 @@ export const SCHEDULE: DaySchedule[] = [
     ],
     cs: { category: 'CN', topic: 'Routing Protocols', subtopics: ['RIP', 'OSPF', 'BGP'] },
     ece: { category: 'Embedded', topic: 'ADC/DAC', subtopics: ['Resolution', 'Sampling'] },
-    focusNote: 'Work top to bottom in priority order. LFU Cache is implementation-heavy and lowest-value for a first pass — understand the architecture (hashmap + freq buckets), but don\'t let it eat half the day.',
-  },
-  {
-    day: 25,
-    date: getDateForDay(25),
-    topic: 'Gap-Closing Day',
-    phase: 'gap-closing',
-    problemCount: 0,
-    problems: [],
-    cs: { category: 'OS', topic: 'DSA Sprint — No CS', subtopics: [] },
-    ece: { category: 'Embedded', topic: 'DSA Sprint — No ECE', subtopics: [] },
-    focusNote: 'No new problems today — only revisit whatever from July 14-19 still feels completely unfamiliar. Likely candidates: 0/1 vs unbounded knapsack, Edit Distance, Regex Matching, stock state machines, interval DP, monotonic stack, LRU Cache, Median of Two Sorted Arrays. Do not add new obscure hard problems. By end of day, fill out the one-page pattern index (see Pattern Index below) — that becomes your revision anchor.',
+    focusNote: 'Work top to bottom in priority order. LFU Cache is implementation-heavy and lowest-value for a first pass — understand the architecture (hashmap + freq buckets), but don\'t let it eat half the day. This absorbed what was Gap-Closing Day, since falling one day behind used up that slack.',
   },
   {
     day: 26,
