@@ -411,7 +411,25 @@ export const SCHEDULE: DaySchedule[] = [
   {
     day: 23,
     date: getDateForDay(23),
-    topic: 'Stock DP + Interval DP (coverage pass) — pushed from Day 22',
+    topic: 'Advanced String DP (coverage pass) — pushed from Day 22',
+    phase: 'intermediate',
+    problemCount: 6,
+    problems: [
+      { name: 'Edit Distance', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/edit-distance/', group: 'Two-string edit DP' },
+      { name: 'Interleaving String', difficulty: 'M', leetcodeUrl: 'https://leetcode.com/problems/interleaving-string/', group: 'Two-string edit DP' },
+      { name: 'Distinct Subsequences', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/distinct-subsequences/', group: 'Two-string edit DP' },
+      { name: 'Regular Expression Matching', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/regular-expression-matching/', group: 'Pattern-matching DP' },
+      { name: 'Longest Valid Parentheses', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/longest-valid-parentheses/', group: 'Stack / string DP' },
+      { name: 'Palindrome Partitioning II', difficulty: 'H', leetcodeUrl: 'https://leetcode.com/problems/palindrome-partitioning-ii/', group: 'Stack / string DP' },
+    ],
+    cs: { category: 'OS', topic: 'DSA Sprint — No CS', subtopics: [] },
+    ece: { category: 'Embedded', topic: 'DSA Sprint — No ECE', subtopics: [] },
+    focusNote: 'Not mastery of regex DP. Just: what does dp[i][j] mean, why does "*" create multiple transitions, how do matching and skipping differ. Regular Expression Matching can stay "recognition-only" for now.',
+  },
+  {
+    day: 24,
+    date: getDateForDay(24),
+    topic: 'Stock DP + Interval DP (coverage pass) — pushed from Day 23',
     phase: 'intermediate',
     problemCount: 8,
     problems: [
@@ -429,9 +447,9 @@ export const SCHEDULE: DaySchedule[] = [
     focusNote: 'Core ideas: holding/not-holding state, transaction-count state, interval DP, and choosing the final operation rather than the first. Don\'t separately grind Stock III and IV for an hour each — once the transaction-state model clicks, treat IV as III\'s generalization.',
   },
   {
-    day: 24,
-    date: getDateForDay(24),
-    topic: 'Bit Manipulation + Matrix + Monotonic Stack (coverage pass) — pushed from Day 23',
+    day: 25,
+    date: getDateForDay(25),
+    topic: 'Bit Manipulation + Matrix + Monotonic Stack (coverage pass) — pushed from Day 24',
     phase: 'intermediate',
     problemCount: 13,
     problems: [
@@ -454,9 +472,9 @@ export const SCHEDULE: DaySchedule[] = [
     focusNote: 'Prioritize the pattern over the count: Largest Rectangle and Trapping Rain Water matter more than grinding every small bit-manipulation problem independently.',
   },
   {
-    day: 25,
-    date: getDateForDay(25),
-    topic: 'Design + Advanced Data Structures (coverage pass) — pushed from Day 24, gap day used',
+    day: 26,
+    date: getDateForDay(26),
+    topic: 'Design + Advanced Data Structures (coverage pass) — pushed from Day 25',
     phase: 'intermediate',
     problemCount: 7,
     problems: [
@@ -470,12 +488,12 @@ export const SCHEDULE: DaySchedule[] = [
     ],
     cs: { category: 'CN', topic: 'Routing Protocols', subtopics: ['RIP', 'OSPF', 'BGP'] },
     ece: { category: 'Embedded', topic: 'ADC/DAC', subtopics: ['Resolution', 'Sampling'] },
-    focusNote: 'Work top to bottom in priority order. LFU Cache is implementation-heavy and lowest-value for a first pass — understand the architecture (hashmap + freq buckets), but don\'t let it eat half the day. This absorbed what was Gap-Closing Day, since falling one day behind used up that slack.',
+    focusNote: 'Work top to bottom in priority order. LFU Cache is implementation-heavy and lowest-value for a first pass — understand the architecture (hashmap + freq buckets), but don\'t let it eat half the day.',
   },
   {
-    day: 26,
-    date: getDateForDay(26),
-    topic: 'Intervals (carried over from Day 18)',
+    day: 27,
+    date: getDateForDay(27),
+    topic: 'Intervals (carried over from Day 18, pushed from Day 26)',
     phase: 'intermediate',
     problemCount: 7,
     problems: [
@@ -491,9 +509,9 @@ export const SCHEDULE: DaySchedule[] = [
     ece: { category: 'Analog', topic: 'Oscillators', subtopics: ['RC', 'LC', 'Crystal'] },
   },
   {
-    day: 27,
-    date: getDateForDay(27),
-    topic: 'DP (Intervals)',
+    day: 28,
+    date: getDateForDay(28),
+    topic: 'DP (Intervals) — pushed from Day 27',
     phase: 'intermediate',
     problemCount: 7,
     problems: [
@@ -509,9 +527,9 @@ export const SCHEDULE: DaySchedule[] = [
     ece: { category: 'Embedded', topic: 'Timers and PWM', subtopics: ['Applications', 'Modes'] },
   },
   {
-    day: 28,
-    date: getDateForDay(28),
-    topic: 'Bit Manipulation',
+    day: 29,
+    date: getDateForDay(29),
+    topic: 'Bit Manipulation — pushed from Day 28',
     phase: 'intermediate',
     problemCount: 8,
     problems: [
@@ -528,9 +546,9 @@ export const SCHEDULE: DaySchedule[] = [
     ece: { category: 'Digital', topic: 'Hazards', subtopics: ['Static', 'Dynamic'] },
   },
   {
-    day: 29,
-    date: getDateForDay(29),
-    topic: 'Math & Geometry',
+    day: 30,
+    date: getDateForDay(30),
+    topic: 'Math & Geometry — pushed from Day 29',
     phase: 'intermediate',
     problemCount: 8,
     problems: [
@@ -547,9 +565,9 @@ export const SCHEDULE: DaySchedule[] = [
     ece: { category: 'Analog', topic: 'Power Amplifiers', subtopics: ['Class A', 'B', 'AB'] },
   },
   {
-    day: 30,
-    date: getDateForDay(30),
-    topic: 'Advanced Mixed',
+    day: 31,
+    date: getDateForDay(31),
+    topic: 'Advanced Mixed — pushed from Day 30',
     phase: 'intermediate',
     problemCount: 7,
     problems: [
@@ -565,9 +583,9 @@ export const SCHEDULE: DaySchedule[] = [
     ece: { category: 'Embedded', topic: 'Real-time scheduling', subtopics: ['Rate Monotonic', 'EDF'] },
   },
   {
-    day: 31,
-    date: getDateForDay(31),
-    topic: 'Revision: Arrays, Strings, Sliding Window',
+    day: 32,
+    date: getDateForDay(32),
+    topic: 'Revision: Arrays, Strings, Sliding Window — pushed from Day 31',
     phase: 'revision',
     problemCount: 6,
     problems: [
@@ -582,9 +600,9 @@ export const SCHEDULE: DaySchedule[] = [
     ece: { category: 'Digital', topic: 'Full Revision', subtopics: ['Boolean', 'Combinational', 'Sequential'] },
   },
   {
-    day: 32,
-    date: getDateForDay(32),
-    topic: 'Revision: Binary Search, Linked Lists, Stacks',
+    day: 33,
+    date: getDateForDay(33),
+    topic: 'Revision: Binary Search, Linked Lists, Stacks — pushed from Day 32',
     phase: 'revision',
     problemCount: 6,
     problems: [
@@ -599,9 +617,9 @@ export const SCHEDULE: DaySchedule[] = [
     ece: { category: 'Analog', topic: 'Full Revision', subtopics: ['Diodes', 'BJT', 'MOSFET', 'Op-Amps'] },
   },
   {
-    day: 33,
-    date: getDateForDay(33),
-    topic: 'Revision: Trees, Heaps, Graphs',
+    day: 34,
+    date: getDateForDay(34),
+    topic: 'Revision: Trees, Heaps, Graphs — pushed from Day 33',
     phase: 'revision',
     problemCount: 6,
     problems: [
@@ -616,9 +634,9 @@ export const SCHEDULE: DaySchedule[] = [
     ece: { category: 'Embedded', topic: 'Full Revision', subtopics: ['Architecture', 'Peripherals', 'Protocols'] },
   },
   {
-    day: 34,
-    date: getDateForDay(34),
-    topic: 'Revision: Backtracking, Greedy, DP',
+    day: 35,
+    date: getDateForDay(35),
+    topic: 'Revision: Backtracking, Greedy, DP — pushed from Day 34',
     phase: 'revision',
     problemCount: 2,
     problems: [
@@ -627,16 +645,6 @@ export const SCHEDULE: DaySchedule[] = [
     ],
     cs: { category: 'OS', topic: 'Mixed Most-Asked', subtopics: ['Top interview topics'] },
     ece: { category: 'Digital', topic: 'Numericals Practice', subtopics: ['All topics'] },
-  },
-  {
-    day: 35,
-    date: getDateForDay(35),
-    topic: 'Final: All Hard Problems',
-    phase: 'revision',
-    problemCount: 0,
-    problems: [],
-    cs: { category: 'DBMS', topic: 'System Design Basics', subtopics: ['Scalability', 'Architecture'] },
-    ece: { category: 'Analog', topic: 'Formula Sheet Review', subtopics: ['All formulas'] },
   },
 ];
 
