@@ -2,13 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardHeader } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { DaySchedule, ScheduledProblem, getCurrentDay, getScheduleByDay } from '@/data/schedule';
 import { getTodayLog, saveDailyLog, generateId } from '@/lib/storage';
 import { calculateDSAXP, calculateFundamentalsXP, calculateElectronicsXP, awardXP, decayXP } from '@/lib/xp-calculator';
 import { markTodayActive } from '@/lib/streak-manager';
-import { adjustScheduleForBootcamp, getAvailableTopics } from '@/lib/bootcamp-sync';
 import { DSAProblem, FundamentalsTopic, ElectronicsTopic, FundamentalsCategory, ElectronicsCategory, CompletionLevel } from '@/types';
 
 const COMPLETION_LEVEL_ORDER: CompletionLevel[] = ['A', 'B', 'C'];
@@ -20,29 +18,6 @@ const COMPLETION_LEVEL_LABEL: Record<CompletionLevel, string> = {
 
 interface TodayScheduleProps {
   onProblemComplete?: () => void;
-}
-
-const BOOTCAMP_STORAGE_KEY = 'pq_bootcamp_today';
-
-interface BootcampData {
-  date: string;
-  topic: string;
-  adjustedProblems: ScheduledProblem[];
-}
-
-function getStoredBootcamp(): BootcampData | null {
-  if (typeof window === 'undefined') return null;
-  const stored = localStorage.getItem(BOOTCAMP_STORAGE_KEY);
-  if (!stored) return null;
-  const data = JSON.parse(stored) as BootcampData;
-  const today = new Date().toISOString().split('T')[0];
-  if (data.date !== today) return null;
-  return data;
-}
-
-function saveBootcamp(data: BootcampData): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(BOOTCAMP_STORAGE_KEY, JSON.stringify(data));
 }
 
 export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
@@ -58,10 +33,6 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
   const [showCsConfidence, setShowCsConfidence] = useState(false);
   const [showEceConfidence, setShowEceConfidence] = useState(false);
   const [completedEceSubtopics, setCompletedEceSubtopics] = useState<Set<string>>(new Set());
-  const [bootcampTopic, setBootcampTopic] = useState<string | null>(null);
-  const [showBootcampInput, setShowBootcampInput] = useState(false);
-  const [bootcampInput, setBootcampInput] = useState('');
-  const [isAdjusted, setIsAdjusted] = useState(false);
 
   useEffect(() => {
     const currentDay = getCurrentDay();
@@ -69,14 +40,7 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
     setSchedule(daySchedule);
 
     if (daySchedule) {
-      const storedBootcamp = getStoredBootcamp();
-      if (storedBootcamp) {
-        setBootcampTopic(storedBootcamp.topic);
-        setDisplayProblems(storedBootcamp.adjustedProblems);
-        setIsAdjusted(true);
-      } else {
-        setDisplayProblems(daySchedule.problems);
-      }
+      setDisplayProblems(daySchedule.problems);
     }
 
     const log = getTodayLog();
@@ -97,33 +61,6 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
       setCompletedEceSubtopics(new Set(log.electronicsTopic.subTopicsCompleted || []));
     }
   }, []);
-
-  const handleBootcampSync = () => {
-    if (!bootcampInput.trim() || !schedule) return;
-
-    const adjusted = adjustScheduleForBootcamp(schedule, bootcampInput.trim());
-    const today = new Date().toISOString().split('T')[0];
-
-    saveBootcamp({
-      date: today,
-      topic: bootcampInput.trim(),
-      adjustedProblems: adjusted,
-    });
-
-    setBootcampTopic(bootcampInput.trim());
-    setDisplayProblems(adjusted);
-    setIsAdjusted(true);
-    setShowBootcampInput(false);
-    setBootcampInput('');
-  };
-
-  const handleResetToOriginal = () => {
-    if (!schedule) return;
-    localStorage.removeItem(BOOTCAMP_STORAGE_KEY);
-    setBootcampTopic(null);
-    setDisplayProblems(schedule.problems);
-    setIsAdjusted(false);
-  };
 
   const handleProblemToggle = (problem: ScheduledProblem) => {
     const log = getTodayLog();
@@ -162,7 +99,7 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
         topic: 'other',
         struggled: struggledProblems.has(problem.name),
         completionLevel: defaultLevel,
-        isBootcamp: bootcampTopic !== null,
+        isBootcamp: false,
         timestamp: new Date().toISOString(),
         xpAwarded: baseXP,
       };
@@ -441,72 +378,16 @@ export function TodaySchedule({ onProblemComplete }: TodayScheduleProps) {
       <div className="flex items-start justify-between mb-6">
         <div>
           <h3 className="text-lg font-medium text-zinc-100">
-            {isAdjusted ? bootcampTopic : schedule.topic}
+            {schedule.topic}
           </h3>
           <p className="text-zinc-500 text-sm mt-0.5">
-            {isAdjusted ? `Synced from bootcamp` : `Day ${schedule.day}`}
+            Starter plan · Day {schedule.day}
           </p>
         </div>
-        {isAdjusted && (
-          <button
-            onClick={handleResetToOriginal}
-            className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
-          >
-            Reset
-          </button>
-        )}
       </div>
 
       <div className="space-y-5">
-        {!isAdjusted && !showBootcampInput && (
-          <button
-            onClick={() => setShowBootcampInput(true)}
-            className="w-full text-left bg-zinc-900 border border-zinc-800 rounded-lg p-3 hover:border-zinc-700 transition-colors"
-          >
-            <p className="text-zinc-400 text-sm">Different topic in bootcamp?</p>
-            <p className="text-zinc-600 text-xs mt-0.5">Click to sync and adjust problems</p>
-          </button>
-        )}
-
-        {showBootcampInput && (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 space-y-3">
-            <p className="text-zinc-400 text-sm">What did bootcamp cover?</p>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={bootcampInput}
-                onChange={(e) => setBootcampInput(e.target.value)}
-                placeholder="e.g., DP, Graphs, Trees..."
-                className="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-zinc-100 text-sm placeholder-zinc-600 focus:outline-none focus:border-zinc-600"
-                list="topics"
-              />
-              <datalist id="topics">
-                {getAvailableTopics().map(topic => (
-                  <option key={topic} value={topic} />
-                ))}
-              </datalist>
-              <Button onClick={handleBootcampSync} size="sm" disabled={!bootcampInput.trim()}>
-                Apply
-              </Button>
-              <Button onClick={() => setShowBootcampInput(false)} variant="ghost" size="sm">
-                Cancel
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {getAvailableTopics().slice(0, 8).map(topic => (
-                <button
-                  key={topic}
-                  onClick={() => setBootcampInput(topic)}
-                  className="text-xs bg-zinc-800 text-zinc-500 px-2 py-1 rounded hover:bg-zinc-700 hover:text-zinc-300 transition-colors"
-                >
-                  {topic}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {schedule.focusNote && !isAdjusted && (
+        {schedule.focusNote && (
           <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-3">
             <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Coverage focus</p>
             <p className="text-zinc-400 text-sm">{schedule.focusNote}</p>

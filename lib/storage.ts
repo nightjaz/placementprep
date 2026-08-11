@@ -40,8 +40,13 @@ export function getEmptyDebt(): DebtRecord {
 
 export function getUserProfile(): UserProfile | null {
   const profile = getItem<UserProfile>(STORAGE_KEYS.USER_PROFILE);
-  if (profile && !profile.settings.enabledEceCategories) {
-    profile.settings.enabledEceCategories = DEFAULT_SETTINGS.enabledEceCategories;
+  if (profile) {
+    profile.settings = {
+      ...DEFAULT_SETTINGS,
+      ...profile.settings,
+      enabledEceCategories: profile.settings.enabledEceCategories || DEFAULT_SETTINGS.enabledEceCategories,
+      useStarterPlan: profile.settings.useStarterPlan ?? false,
+    };
   }
   return profile;
 }
@@ -145,5 +150,24 @@ export function addShameEntry(entry: ShameEntry): void {
 export function clearAllData(): void {
   Object.values(STORAGE_KEYS).forEach(key => {
     localStorage.removeItem(key);
+  });
+}
+
+export function exportAllData(): string {
+  const data = Object.fromEntries(
+    Object.values(STORAGE_KEYS).map(key => [key, getItem<unknown>(key)])
+  );
+  return JSON.stringify({ version: 2, exportedAt: new Date().toISOString(), data }, null, 2);
+}
+
+export function importAllData(raw: string): void {
+  const parsed = JSON.parse(raw) as { data?: Record<string, unknown> };
+  if (!parsed.data || typeof parsed.data !== 'object') {
+    throw new Error('This is not a PlacementQuest backup.');
+  }
+
+  const allowed = new Set<string>(Object.values(STORAGE_KEYS));
+  Object.entries(parsed.data).forEach(([key, value]) => {
+    if (allowed.has(key) && value !== null) setItem(key, value);
   });
 }

@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PlacementQuest
 
-## Getting Started
+A local-first, gamified study tracker for placement preparation across DSA, CS fundamentals, and electronics.
 
-First, run the development server:
+PlacementQuest rewards consistent preparation with XP, levels, streaks, calendars, and revision cues. Progress stays in the browser and can be exported as a portable JSON backup. No account or backend is required.
+
+## Features
+
+- DSA problems by topic, difficulty, platform, and revision status
+- CS fundamentals: operating systems, DBMS, computer networks, and system design
+- Electronics topics, confidence, formulas, subtopics, and numericals
+- Daily goals, XP, streaks, heatmap, and all-time progress
+- Optional curated 35-day starter curriculum
+- Optional strict-mode roasts and accountability views
+
+The default experience is supportive: missing a day can reset a streak, but it never deletes earned XP. The old bootcamp workflow has been retired; historical entries remain readable.
+
+## Run locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Validate changes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run lint
+npm run build
+```
 
-## Learn More
+## Data and privacy
 
-To learn more about Next.js, take a look at the following resources:
+Data is stored under `pq_*` keys in browser `localStorage`. Use **Settings → Your data → Export backup** before clearing browser data or switching devices. Imports accept only PlacementQuest's known storage keys.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Contributing
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Issues and pull requests are welcome. Keep migrations backward-compatible: users may have months of progress in older local-storage shapes. Avoid making a hosted service mandatory for core tracking.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Before publishing publicly, choose and add an explicit open-source license (MIT is a common permissive option) and replace the default favicon/assets.

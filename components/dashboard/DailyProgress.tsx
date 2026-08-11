@@ -12,7 +12,6 @@ interface DailyProgressProps {
 export function DailyProgress({ log, settings }: DailyProgressProps) {
   const dsaProgress = log.dsaProblems.length;
   const dsaGoal = settings.dailyDSAGoal;
-  const bootcampCount = log.dsaProblems.filter(p => p.isBootcamp).length;
 
   const fundamentalsDone = log.fundamentalsTopic !== null;
   const electronicsDone = log.electronicsTopic !== null;
@@ -36,7 +35,6 @@ export function DailyProgress({ log, settings }: DailyProgressProps) {
           label="DSA Problems"
           current={dsaProgress}
           goal={dsaGoal}
-          detail={bootcampCount > 0 ? `(${bootcampCount} from bootcamp)` : undefined}
           color={dsaProgress >= dsaGoal ? 'bg-emerald-500' : 'bg-blue-500'}
         />
 

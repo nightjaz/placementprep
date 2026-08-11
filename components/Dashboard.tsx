@@ -6,6 +6,8 @@ import { CountdownTimer } from '@/components/dashboard/CountdownTimer';
 import { XPDisplay } from '@/components/dashboard/XPDisplay';
 import { StreakDisplay } from '@/components/dashboard/StreakDisplay';
 import { LaggingTopics } from '@/components/dashboard/LaggingTopics';
+import { DailyProgress } from '@/components/dashboard/DailyProgress';
+import { PrepSnapshot } from '@/components/dashboard/PrepSnapshot';
 import { DSATracker, RecentProblems } from '@/components/tracking/DSATracker';
 import { FundamentalsTracker } from '@/components/tracking/FundamentalsTracker';
 import { ElectronicsTracker } from '@/components/tracking/ElectronicsTracker';
@@ -110,28 +112,30 @@ export function Dashboard({ profile, onRefresh }: DashboardProps) {
       <main className="max-w-7xl mx-auto px-4 py-6">
         {activeTab === 'overview' && (
           <div className="space-y-6">
-            <LaggingTopics onComplete={refreshLog} />
+            <PrepSnapshot profile={profile} />
+            <DailyProgress log={log} settings={profile.settings} />
+            {profile.settings.useStarterPlan && <LaggingTopics onComplete={refreshLog} />}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
-              <RoastDisplay />
+              {profile.settings.harshMode && <RoastDisplay />}
 
               <div className="grid grid-cols-2 gap-4">
                 <Card>
                   <CountdownTimer targetDate={profile.placementDate} />
                 </Card>
-                <Card>
+                {profile.settings.useStarterPlan && <Card>
                   <div className="text-center">
-                    <p className="text-zinc-500 text-xs uppercase tracking-wider mb-1">Current Day</p>
+                    <p className="text-zinc-500 text-xs uppercase tracking-wider mb-1">Starter plan</p>
                     <p className="text-4xl font-bold text-zinc-100">{getCurrentDay()}</p>
                     <p className="text-zinc-500 text-sm">of 35</p>
                   </div>
-                </Card>
+                </Card>}
               </div>
 
-              <TodaySchedule onProblemComplete={refreshLog} />
+              {profile.settings.useStarterPlan && <TodaySchedule onProblemComplete={refreshLog} />}
 
-              <PatternIndex />
+              {profile.settings.useStarterPlan && <PatternIndex />}
 
               <Card>
                 <CardHeader title="Progress" />

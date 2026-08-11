@@ -65,11 +65,12 @@ export function decayXP(amount: number): number {
   const profile = getUserProfile();
   if (!profile) return 0;
 
+  const actualDecay = Math.min(Math.max(0, amount), profile.totalXP);
   const todayLog = getTodayLog();
-  todayLog.xpDecayed += amount;
+  todayLog.xpDecayed += actualDecay;
   saveDailyLog(todayLog);
 
-  const newTotalXP = Math.max(0, profile.totalXP - amount);
+  const newTotalXP = profile.totalXP - actualDecay;
   const newLevel = calculateLevel(newTotalXP);
 
   updateUserProfile({
@@ -77,7 +78,7 @@ export function decayXP(amount: number): number {
     level: newLevel,
   });
 
-  return amount;
+  return actualDecay;
 }
 
 export function calculateLevel(totalXP: number): number {

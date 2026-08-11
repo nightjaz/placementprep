@@ -1,44 +1,30 @@
-import { getUserProfile, updateUserProfile, getTodayString, getDailyLog, addShameEntry, saveDailyLog } from './storage';
-import { calculateStreakDeathPenalty, decayXP, calculateMissedGoalsDecay } from './xp-calculator';
+import { getUserProfile, updateUserProfile, getTodayString, getDailyLog, addShameEntry } from './storage';
+import { calculateMissedGoalsDecay, decayXP } from './xp-calculator';
 import { ShameEntry, DailyLog } from '@/types';
-import { getScheduleByDay, getCurrentDay } from '@/data/schedule';
-
-const DECAY_PROCESSED_KEY = 'pq_decay_processed';
 
 const STREAK_FREEZE_COST = 500;
 const MAX_FREEZES_PER_WEEK = 1;
 
-const STREAK_COMPLETION_THRESHOLD = 0.7; // 70% of tasks must be done for streak to continue
+const STREAK_COMPLETION_THRESHOLD = 0.65;
+const DECAY_PROCESSED_KEY = 'pq_decay_processed';
 
-export function isDayComplete(log: DailyLog | null, dayNumber: number): boolean {
-  if (!log) return false;
+function getCompletion(log: DailyLog | null) {
+  const settings = getUserProfile()?.settings;
+  if (!log || !settings) return { completed: 0, total: 0, percentage: 0 };
 
-  const schedule = getScheduleByDay(dayNumber);
-  if (!schedule) return false;
+  const total = settings.dailyDSAGoal + settings.dailyFundamentalsGoal + settings.dailyElectronicsGoal + settings.dailyNumericalGoal;
+  const completed =
+    Math.min(log.dsaProblems.length, settings.dailyDSAGoal) +
+    (log.fundamentalsTopic ? settings.dailyFundamentalsGoal : 0) +
+    (log.electronicsTopic ? settings.dailyElectronicsGoal : 0) +
+    Math.min(log.numericalsSolved, settings.dailyNumericalGoal);
 
-  // Count completed DSA problems
-  const completedProblems = new Set(log.dsaProblems.map(p => p.name));
-  const dsaCompleted = schedule.problems.filter(p => completedProblems.has(p.name)).length;
+  return { completed, total, percentage: total === 0 ? 100 : Math.round((completed / total) * 100) };
+}
 
-  // Check fundamentals (1 task)
-  const fundamentalsDone = log.fundamentalsTopic !== null ? 1 : 0;
-
-  // Check electronics - each subtopic = 1 task
-  // Backward compat: if electronicsTopic exists but subTopicsCompleted is empty,
-  // it means day was completed before subtopic tracking, count as all done
-  const eceSubtopicsTotal = schedule.ece.subtopics.length;
-  let eceSubtopicsCompleted = 0;
-  if (log.electronicsTopic) {
-    const logged = log.electronicsTopic.subTopicsCompleted?.length || 0;
-    eceSubtopicsCompleted = logged > 0 ? logged : eceSubtopicsTotal;
-  }
-
-  // Total tasks = DSA problems + fundamentals (1) + ECE subtopics
-  const totalTasks = schedule.problems.length + 1 + eceSubtopicsTotal;
-  const completedTasks = dsaCompleted + fundamentalsDone + eceSubtopicsCompleted;
-
-  // Streak continues if at least 70% of tasks are done
-  return completedTasks / totalTasks >= STREAK_COMPLETION_THRESHOLD;
+export function isDayComplete(log: DailyLog | null, _dayNumber?: number): boolean {
+  const { completed, total } = getCompletion(log);
+  return total > 0 && completed / total >= STREAK_COMPLETION_THRESHOLD;
 }
 
 export function getTodayCompletionStatus(): {
@@ -52,40 +38,22 @@ export function getTodayCompletionStatus(): {
   completionPercent: number;
   streakEligible: boolean;
 } {
-  const dayNumber = getCurrentDay();
-  const schedule = getScheduleByDay(dayNumber);
   const log = getDailyLog(getTodayString());
-
-  if (!schedule) {
-    return { dsaDone: 0, dsaTotal: 0, fundamentalsDone: false, electronicsDone: false, eceDone: 0, eceTotal: 0, allComplete: false, completionPercent: 0, streakEligible: false };
-  }
-
-  const completedProblems = new Set(log?.dsaProblems.map(p => p.name) || []);
-  const dsaDone = schedule.problems.filter(p => completedProblems.has(p.name)).length;
-
-  const fundamentalsDone = log?.fundamentalsTopic !== null;
-
-  // ECE subtopics - each counts as 1 task
-  // Backward compat: if electronicsTopic exists but subTopicsCompleted empty, count all done
-  const eceTotal = schedule.ece.subtopics.length;
-  let eceDone = 0;
-  if (log?.electronicsTopic) {
-    const logged = log.electronicsTopic.subTopicsCompleted?.length || 0;
-    eceDone = logged > 0 ? logged : eceTotal;
-  }
-  const electronicsDone = eceDone === eceTotal;
-
-  const allComplete = dsaDone === schedule.problems.length && fundamentalsDone && electronicsDone;
-
-  // Each ECE subtopic = 1 task, same weight as DSA or CS
-  const totalTasks = schedule.problems.length + 1 + eceTotal;
-  const completedTasks = dsaDone + (fundamentalsDone ? 1 : 0) + eceDone;
-  const completionPercent = Math.round((completedTasks / totalTasks) * 100);
-  const streakEligible = completedTasks / totalTasks >= STREAK_COMPLETION_THRESHOLD;
+  const settings = getUserProfile()?.settings;
+  const progress = getCompletion(log);
+  const dsaDone = log?.dsaProblems.length || 0;
+  const dsaTotal = settings?.dailyDSAGoal || 0;
+  const fundamentalsDone = Boolean(log?.fundamentalsTopic);
+  const electronicsDone = Boolean(log?.electronicsTopic);
+  const eceTotal = settings?.dailyElectronicsGoal || 0;
+  const eceDone = electronicsDone ? eceTotal : 0;
+  const allComplete = progress.total > 0 && progress.completed >= progress.total;
+  const completionPercent = progress.percentage;
+  const streakEligible = completionPercent >= STREAK_COMPLETION_THRESHOLD * 100;
 
   return {
     dsaDone,
-    dsaTotal: schedule.problems.length,
+    dsaTotal,
     fundamentalsDone,
     electronicsDone,
     eceDone,
@@ -135,11 +103,7 @@ export function checkAndUpdateStreak(): {
 
   if (daysSinceActive === 1) {
     const yesterdayLog = getDailyLog(getYesterdayString());
-    const wasActiveYesterday = yesterdayLog && (
-      yesterdayLog.dsaProblems.length > 0 ||
-      yesterdayLog.fundamentalsTopic !== null ||
-      yesterdayLog.electronicsTopic !== null
-    );
+    const wasActiveYesterday = isDayComplete(yesterdayLog);
 
     if (wasActiveYesterday) {
       return { streakBroken: false, newStreak: profile.currentStreak, xpLost: 0, wasActive: false };
@@ -147,8 +111,8 @@ export function checkAndUpdateStreak(): {
   }
 
   if (daysSinceActive > 1 || (daysSinceActive === 1 && profile.currentStreak > 0)) {
-    const penalty = calculateStreakDeathPenalty(profile.currentStreak);
-    decayXP(penalty);
+    // Missing a day resets the active streak but never removes earned XP.
+    const penalty = 0;
 
     const missedDates: string[] = [];
     for (let i = 1; i < daysSinceActive; i++) {
@@ -205,16 +169,14 @@ export function markTodayActive(): void {
   if (!profile) return;
 
   const today = getTodayString();
-  const dayNumber = getCurrentDay();
   const log = getDailyLog(today);
 
-  // Only count the day if ALL tasks are complete
-  if (!isDayComplete(log, dayNumber)) {
+  if (!isDayComplete(log)) {
     return;
   }
 
   // Already counted this day
-  if (profile.lastActiveDate === today) {
+  if (profile.lastActiveDate === today && profile.currentStreak > 0) {
     return;
   }
 
@@ -233,132 +195,37 @@ export function markTodayActive(): void {
 }
 
 export function initializeStreakFromHistory(): void {
-  const profile = getUserProfile();
-  if (!profile) return;
-
-  // Apply decay for missed tasks from previous days
   applyMissedTasksDecay();
-
-  // Recalculate streak from consecutive complete days ending yesterday
-  const currentDay = getCurrentDay();
-  let streak = 0;
-  let checkDay = currentDay - 1;
-
-  while (checkDay >= 1) {
-    const checkDate = getDateForDayNumber(checkDay);
-    const log = getDailyLog(checkDate);
-
-    if (isDayComplete(log, checkDay)) {
-      streak++;
-      checkDay--;
-    } else {
-      break;
-    }
-  }
-
-  // Update if calculated streak differs from stored
-  if (streak !== profile.currentStreak) {
-    updateUserProfile({
-      currentStreak: streak,
-      longestStreak: Math.max(profile.longestStreak, streak),
-      lastActiveDate: streak > 0 ? getDateForDayNumber(currentDay - 1) : profile.lastActiveDate,
-    });
-  }
 }
 
 export function applyMissedTasksDecay(): void {
   if (typeof window === 'undefined') return;
-
   const profile = getUserProfile();
-  if (!profile) return;
+  if (!profile?.settings.xpDecayEnabled) return;
 
-  const today = getTodayString();
-  const lastProcessed = localStorage.getItem(DECAY_PROCESSED_KEY);
+  const yesterday = getYesterdayString();
+  if (localStorage.getItem(DECAY_PROCESSED_KEY) === yesterday) return;
 
-  // Already processed today
-  if (lastProcessed === today) return;
+  const log = getDailyLog(yesterday) || {
+    date: yesterday,
+    dsaProblems: [],
+    fundamentalsTopic: null,
+    electronicsTopic: null,
+    numericalsSolved: 0,
+    checkIns: [],
+    xpEarned: 0,
+    xpDecayed: 0,
+    questsCompleted: [],
+    debtPaid: [],
+    notes: '',
+  };
+  const requested = calculateMissedGoalsDecay(log, profile.settings);
+  const actual = decayXP(requested);
+  localStorage.setItem(DECAY_PROCESSED_KEY, yesterday);
 
-  const currentDay = getCurrentDay();
-  let totalDecay = 0;
-  const missedItems: string[] = [];
-
-  // Check all previous days for incomplete tasks
-  for (let day = 1; day < currentDay; day++) {
-    const dateStr = getDateForDayNumber(day);
-    const log = getDailyLog(dateStr);
-    const schedule = getScheduleByDay(day);
-
-    if (!schedule) continue;
-
-    // Check if this day's decay was already applied
-    if (log?.xpDecayed && log.xpDecayed > 0) continue;
-
-    const settings = {
-      dailyDSAGoal: schedule.problems.length,
-      dailyFundamentalsGoal: 1,
-      dailyElectronicsGoal: 1,
-      dailyNumericalGoal: 0,
-    };
-
-    const emptyLog: DailyLog = {
-      date: dateStr,
-      dsaProblems: [],
-      fundamentalsTopic: null,
-      electronicsTopic: null,
-      numericalsSolved: 0,
-      checkIns: [],
-      xpEarned: 0,
-      xpDecayed: 0,
-      questsCompleted: [],
-      debtPaid: [],
-      notes: '',
-    };
-
-    const dayLog = log || emptyLog;
-    const decay = calculateMissedGoalsDecay(dayLog, settings);
-
-    if (decay > 0) {
-      totalDecay += decay;
-
-      // Track what was missed
-      const completedProblems = new Set(dayLog.dsaProblems.map(p => p.name));
-      const dsaMissed = schedule.problems.length - schedule.problems.filter(p => completedProblems.has(p.name)).length;
-      if (dsaMissed > 0) missedItems.push(`Day ${day}: ${dsaMissed} DSA problems`);
-      if (!dayLog.fundamentalsTopic) missedItems.push(`Day ${day}: CS Fundamentals`);
-      if (!dayLog.electronicsTopic) missedItems.push(`Day ${day}: Electronics`);
-
-      // Mark this day's decay as applied
-      dayLog.xpDecayed = decay;
-      saveDailyLog(dayLog);
-    }
+  if (actual > 0 && profile.settings.harshMode) {
+    addShameEntry({ date: getTodayString(), missedGoals: [`Missed daily goals on ${yesterday}`], xpLost: actual, debtIncurred: 0 });
   }
-
-  if (totalDecay > 0) {
-    decayXP(totalDecay);
-
-    // Add to shame wall if harsh mode is on
-    if (profile.settings.harshMode) {
-      const shameEntry: ShameEntry = {
-        date: today,
-        missedGoals: missedItems,
-        xpLost: totalDecay,
-        debtIncurred: 0,
-      };
-      addShameEntry(shameEntry);
-    }
-  }
-
-  // Mark today as processed
-  localStorage.setItem(DECAY_PROCESSED_KEY, today);
-}
-
-function getDateForDayNumber(dayNumber: number): string {
-  const start = new Date(2026, 5, 26); // June 26, 2026
-  start.setDate(start.getDate() + dayNumber - 1);
-  const year = start.getFullYear();
-  const month = String(start.getMonth() + 1).padStart(2, '0');
-  const day = String(start.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
 }
 
 export function getStreakMilestones(streak: number): string[] {

@@ -17,8 +17,7 @@ export function DSATracker({ onProblemAdded }: DSATrackerProps) {
   const [name, setName] = useState('');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [topic, setTopic] = useState<DSATopic>('arrays');
-  const [platform, setPlatform] = useState<'leetcode' | 'bootcamp' | 'gfg' | 'other'>('leetcode');
-  const [isBootcamp, setIsBootcamp] = useState(false);
+  const [platform, setPlatform] = useState<'leetcode' | 'gfg' | 'codeforces' | 'other'>('leetcode');
   const [struggled, setStruggled] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -35,11 +34,11 @@ export function DSATracker({ onProblemAdded }: DSATrackerProps) {
     const problem: DSAProblem = {
       id: generateId(),
       name: name.trim(),
-      platform: isBootcamp ? 'bootcamp' : platform,
+      platform,
       difficulty,
       topic,
       struggled,
-      isBootcamp,
+      isBootcamp: false,
       timestamp: new Date().toISOString(),
       xpAwarded: baseXP,
     };
@@ -110,26 +109,16 @@ export function DSATracker({ onProblemAdded }: DSATrackerProps) {
           <select
             value={platform}
             onChange={(e) => setPlatform(e.target.value as typeof platform)}
-            disabled={isBootcamp}
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-zinc-100 text-sm focus:outline-none focus:border-zinc-600 disabled:opacity-50"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-zinc-100 text-sm focus:outline-none focus:border-zinc-600"
           >
             <option value="leetcode">LeetCode</option>
             <option value="gfg">GeeksforGeeks</option>
+            <option value="codeforces">Codeforces</option>
             <option value="other">Other</option>
           </select>
         </div>
 
         <div className="space-y-2">
-          <label className="flex items-center gap-2.5 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={isBootcamp}
-              onChange={(e) => setIsBootcamp(e.target.checked)}
-              className="w-4 h-4 rounded border-zinc-700 bg-zinc-900 text-emerald-500 focus:ring-emerald-500 focus:ring-offset-0"
-            />
-            <span className="text-sm text-zinc-400">From bootcamp contest</span>
-          </label>
-
           <label className="flex items-center gap-2.5 cursor-pointer">
             <input
               type="checkbox"
@@ -180,7 +169,6 @@ export function RecentProblems({ problems }: { problems: DSAProblem[] }) {
                 <p className="text-sm text-zinc-300">{problem.name}</p>
                 <p className="text-xs text-zinc-600">
                   {problem.topic}
-                  {problem.isBootcamp && ' · bootcamp'}
                   {problem.struggled && ' · revision'}
                 </p>
               </div>

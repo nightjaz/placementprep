@@ -26,10 +26,14 @@ export interface UserSettings {
   dailyFundamentalsGoal: number;
   dailyElectronicsGoal: number;
   dailyNumericalGoal: number;
-  bootcampProblemsCount: number;
-  checkInTimes: string[];
+  /** @deprecated Kept only so older local data can be imported safely. */
+  bootcampProblemsCount?: number;
+  /** @deprecated The old lecture check-in system is no longer used. */
+  checkInTimes?: string[];
   leetcodeUsername?: string;
   harshMode: boolean;
+  xpDecayEnabled: boolean;
+  useStarterPlan: boolean;
   enabledEceCategories?: ElectronicsCategory[];
 }
 
@@ -55,13 +59,14 @@ export type CompletionLevel = 'A' | 'B' | 'C';
 export interface DSAProblem {
   id: string;
   name: string;
-  platform: 'leetcode' | 'bootcamp' | 'gfg' | 'other';
+  platform: 'leetcode' | 'bootcamp' | 'gfg' | 'codeforces' | 'other';
   difficulty: 'easy' | 'medium' | 'hard';
   topic: DSATopic;
   timeMinutes?: number;
   struggled: boolean;
   completionLevel?: CompletionLevel;
-  isBootcamp: boolean;
+  /** @deprecated Preserved on historical entries during migration. */
+  isBootcamp?: boolean;
   timestamp: string;
   xpAwarded: number;
 }

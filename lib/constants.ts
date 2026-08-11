@@ -197,13 +197,13 @@ export const ELECTRONICS_TOPICS = {
 };
 
 export const DEFAULT_SETTINGS: UserSettings = {
-  dailyDSAGoal: 8,
+  dailyDSAGoal: 3,
   dailyFundamentalsGoal: 1,
   dailyElectronicsGoal: 1,
-  dailyNumericalGoal: 5,
-  bootcampProblemsCount: 6,
-  checkInTimes: ['10:00', '15:00', '19:00', '23:00'],
-  harshMode: true,
+  dailyNumericalGoal: 0,
+  harshMode: false,
+  xpDecayEnabled: true,
+  useStarterPlan: false,
   enabledEceCategories: ['analog', 'digital', 'embedded'],
 };
 
